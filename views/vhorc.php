@@ -420,45 +420,44 @@ require_once("models/mhorc.php");
             }
             ?>
         </tbody>
-                            $unique_id = $fechaObj->format('Ymd');
-                            
-                            echo '<tr class="table-primary"><td colspan="3"><strong>'.$diaEspanol.' '.$fechaFormateada.'</strong></td></tr>';
-                            
-                            foreach($horarios as $h) {
-                                $horaInicio = isset($h['hinihor']) ? $h['hinihor'] : '';
-                                $horaFin = isset($h['hfinhor']) ? $h['hfinhor'] : '';
-                                ?>
-                                <tr id="row-<?php echo $unique_id; ?>">
-                                    <td style="padding-left:2em;"><?php echo $fechaFormateada; ?>
-                                        <input type="hidden" name="fecha[]" value="<?php echo $fecha; ?>">
-                                        <input type="hidden" name="idhorario[]" value="<?php echo isset($h['idhorario']) ? $h['idhorario'] : ''; ?>">
-                                    </td>
-                                    <td>
-                                        <input type="time" name="hora_inicio[]" class="form-control" value="<?php echo $horaInicio; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
-                                    </td>
-                                    <td>
-                                        <input type="time" name="hora_fin[]" class="form-control" value="<?php echo $horaFin; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
-                                    </td>
-                                </tr>
-                                <?php
-                            }
-                        }
-                    }
-                } else {
-                    echo '<tr><td colspan="3" class="text-center text-muted">No hay horarios asignados. Use la sección "Agregar Horario" para crear uno.</td></tr>';
-                }
-            }
-            ?>
-        </tbody>
     <div class="text-center mt-3">
         <button type="button" onclick="if(typeof guardar === 'function'){ guardar(); } else { alert('Horario guardado'); }" class="btn btn-primary">Guardar Horario</button>
         <input type="hidden" name="opera" value="save">
         <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
     </div>
 </div>
- </div>
- </div>
+</div>
+</div>
 
+<!-- AGREGAR HORARIO -->
+<div class="card mt-3">
+    <div class="card-body">
+        <h4 class="card-title">Agregar Horario</h4>
+        <br>
+        <form id="formAgregarHorario">
+            <div class="row">
+                <?php
+                $fechaInicio = isset($datOneHt[0]['feclini']) ? $datOneHt[0]['feclini'] : '';
+                $fechaFin = isset($datOneHt[0]['feclin']) ? $datOneHt[0]['feclin'] : '';
+                ?>
+                <div class="form-group col-md-4 mb-3">
+                    <label for="fecha_nueva">Fecha</label>
+                    <input type="date" id="fecha_nueva" name="fecha_nueva" class="form-control" 
+                           min="<?php echo $fechaInicio; ?>" max="<?php echo $fechaFin; ?>" required>
+                </div>
+                <div class="form-group col-md-4 mb-3">
+                    <label for="hora_inicio_nueva">Hora Inicio</label>
+                    <input type="time" id="hora_inicio_nueva" name="hora_inicio_nueva" class="form-control" step="60" required>
+                </div>
+                <div class="form-group col-md-4 mb-3">
+                    <label for="hora_fin_nueva">Hora Fin</label>
+                    <input type="time" id="hora_fin_nueva" name="hora_fin_nueva" class="form-control" step="60" required>
+                </div>
+            </div>
+            <button type="button" class="btn btn-success" onclick="agregarHorario()">Agregar Horario</button>
+        </form>
+    </div>
+</div>
 
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Agregar Instructor">
           <i class="fa-solid fa-user-plus fa-2x" style="color: #ffffff;"></i>
