@@ -6,6 +6,7 @@ require_once("models/mccm.php");
 
 // Inicializar variables
 $idnorad = isset($_REQUEST["idnorad"]) ? $_REQUEST["idnorad"] : NULL;
+$opera = isset($_REQUEST['opera']) ? $_REQUEST['opera'] : NULL;
 
 // Inicializar objetos
 $mhorc = new Mhorc();
@@ -13,121 +14,83 @@ $mhdt = new Mhdt();
 $memp = new Memp();
 $mccm = new Mccm();
 
-// Inicializar variables
+// Inicializar variables de datos
 $datOne = [];
 $datOneEmp = [];
 $datOneHt = [];
+$dtpro = [];
+$datInsHdt = [];
+$instructores = [];
 $idemp_actual = null;
 
-
-$mhdt->setIdnorad($idnorad);
-$dthdt = $mhdt->getOne();
-
-if($dthdt){
-    $mccm->setCodpro($dthdt[0]["codpro"]);
-    $dtpro = $mccm->getOne();
-    //var_dump($dtpro);
+// Operación: Asignar Instructor
+if ($opera == "AgrIns" && $idnorad) {
+    $idinstructor = isset($_POST['idinstructor']) ? $_POST['idinstructor'] : NULL;
+    if ($idinstructor) {
+        $mhorc->asignarInstructor($idnorad, $idinstructor);
+        echo "<script>alert('Instructor asignado exitosamente'); window.location.href='home.php?pg=2002&idnorad=" . $idnorad . "';</script>";
+        exit;
+    }
 }
 
-// Manejar el cambio de empresa (tanto para registros existentes como nuevos)
-if(isset($_POST['cambiar_empresa']) && !empty($_POST['idemp'])) {
-    $idemp_actual = $_POST['idemp'];
-    
-    // Si es un registro existente
-    if($idnorad) {
-        // Cargar datos actuales primero
-        $mhdt->setIdnorad($idnorad);
-        $datos_actuales = $mhdt->getOne();
-        
-        if(!empty($datos_actuales[0])) {
-            // Guardar TODOS los datos actuales importantes, no solo las fechas
-            $datos_guardar = $datos_actuales[0];
-            
-            // Actualizar solo el campo de empresa
-            $mhdt->setIdemp($idemp_actual);
-            
-            // Mantener los datos existentes al actualizar
-            $mhdt->setFeclini($datos_guardar['feclini'] ?? null);
-            $mhdt->setFeclin($datos_guardar['feclin'] ?? null);
-            $mhdt->setCupo($datos_guardar['cupo'] ?? null);
-            $mhdt->setJornada($datos_guardar['jornada'] ?? null);
-            
-            // Realizar la actualización
-            $mhdt->edit();
-            
-            // Recargar los datos actualizados
-            $datOneHt = $mhdt->getOne();
-            
-            // Asegurarse de que los datos mostrados incluyan la información actualizada
-            if (!empty($datOneHt[0])) {
-                // Mantener los datos guardados en la visualización
-                $datOneHt[0] = array_merge($datOneHt[0], $datos_guardar);
-                // Asegurar que el idemp sea el correcto
-                $datOneHt[0]['idemp'] = $idemp_actual;
-                // Asegurar que las fechas se mantengan
-                $datOneHt[0]['feclini'] = $datos_guardar['feclini'];
-                $datOneHt[0]['feclin'] = $datos_guardar['feclin'];
-            } else {
-                // Si no se cargaron los datos actualizados, usar los guardados
-                $datOneHt = $datos_actuales;
-                $datOneHt[0]['idemp'] = $idemp_actual;
+// Operación: Eliminar Instructor
+if ($opera == "EliIns" && $idnorad) {
+    $idusu = isset($_REQUEST['idusu']) ? $_REQUEST['idusu'] : NULL;
+    if ($idusu) {
+        $mhorc->eliminarInstructor($idnorad, $idusu);
+        echo "<script>alert('Instructor retirado exitosamente'); window.location.href='home.php?pg=2002&idnorad=" . $idnorad . "';</script>";
+        exit;
+    }
+}
+
+// Operación: Guardar / Actualizar datos complementarios desde vhorc
+if ($opera == "save" && $idnorad) {
+    $idfic = isset($_POST["idfic"]) ? trim($_POST["idfic"]) : NULL;
+    $codslem = isset($_POST["codslem"]) ? trim($_POST["codslem"]) : NULL;
+    $convht = isset($_POST["convht"]) ? trim($_POST["convht"]) : NULL;
+
+    $mhorc->updateComplementarios($idnorad, $idfic, $codslem, $convht);
+    echo "<script>alert('Datos complementarios actualizados exitosamente'); window.location.href='home.php?pg=2002&idnorad=" . $idnorad . "';</script>";
+    exit;
+}
+
+// Cargar datos si existe idnorad
+if ($idnorad) {
+    $mhdt->setIdnorad($idnorad);
+    $datOneHt = $mhdt->getOne();
+
+    if (!empty($datOneHt[0])) {
+        $datOne = $datOneHt;
+
+        // Cargar empresa asociada a la hoja de trabajo
+        if (!empty($datOneHt[0]['idemp'])) {
+            $memp->setIdemp($datOneHt[0]['idemp']);
+            $datOneEmp = $memp->getOne();
+        }
+
+        // Cargar programa asociado a la hoja de trabajo
+        if (!empty($datOneHt[0]['codpro'])) {
+            $mccm->setCodpro($datOneHt[0]['codpro']);
+            $dtpro = $mccm->getOne();
+        }
+
+        // Normalizar fechas para visualización
+        if (isset($datOne[0]['feclini']) && isset($datOne[0]['feclin'])) {
+            try {
+                $feclini = new DateTime($datOne[0]['feclini']);
+                $feclin = new DateTime($datOne[0]['feclin']);
+                $datOne[0]['feclini'] = $feclini->format('Y-m-d');
+                $datOne[0]['feclin'] = $feclin->format('Y-m-d');
+            } catch (Exception $e) {
+                // Mantener formato original si falla
             }
         }
     }
-    
-    // Cargar datos de la empresa seleccionada
-    $memp->setIdemp($idemp_actual);
-    $datOneEmp = $memp->getOne();
-}
-// Si no se está cambiando la empresa pero hay un idnorad, cargar datos normales
-else if($idnorad) {
-    // Cargar datos de la hoja de trabajo
-    $mhdt->setIdnorad($idnorad);
-    $datOneHt = $mhdt->getOne();
-    
-    // Cargar datos de la empresa si existe idemp
-    if(!empty($datOneHt[0]['idemp'])) {
-        $memp->setIdemp($datOneHt[0]['idemp']);
-        $datOneEmp = $memp->getOne();
-    }
+
+    // Cargar instructores asignados a esta hoja de trabajo
+    $datInsHdt = $mhorc->getInstructoresByHoja($idnorad);
 }
 
-// Asignar datos a $datOne si hay datos de hoja de trabajo
-if(!empty($datOneHt) && !empty($datOneHt[0])) {
-    $datOne = $datOneHt;
-    
-    // Forzar la carga de las fechas desde la hoja de trabajo
-    if (isset($datOne[0]['feclini']) && isset($datOne[0]['feclin'])) {
-        // Asegurarse de que las fechas estén en el formato correcto
-        $feclini = new DateTime($datOne[0]['feclini']);
-        $feclin = new DateTime($datOne[0]['feclin']);
-        
-        // Actualizar los valores en el array
-        $datOne[0]['feclini'] = $feclini->format('Y-m-d');
-        $datOne[0]['feclin'] = $feclin->format('Y-m-d');
-    }
-}
-
-// Si no hay idnorad pero se ha seleccionado una empresa (caso de nuevo registro)
-if(empty($idnorad) && !empty($_POST['idemp']) && empty($datOneEmp)) {
-    $memp->setIdemp($_POST['idemp']);
-    $datOneEmp = $memp->getOne();
-}
-
-if($opera == "save") {
-    $mhorc->setiddia($iddia);
-    $mhorc->setHinihor($hinihor);
-    $mhorc->setHfinhor($hfinhor);
-    $mhorc->setIdnorad($idnorad);
-    $mhorc->setIdaul($idaul);
-    if(!$idnorad){ 
-        $mhdt->save();
-        $idnorad2 = $mhdt->getOneLast();
-        if($idnorad2) $idnorad2 = $idnorad2[0]['idnorad'];
-        $mhdt->setIdnorad($idnorad2);
-        $mhdt->saveHxU();
-    }
-}
-
-
+// Cargar catálogo de todos los instructores disponibles para asignación
+$instructores = $mhorc->getAllInstructores();
 ?>

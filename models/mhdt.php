@@ -14,8 +14,8 @@ class Mhdt{
 	private $jornada;
 	private $idfic;
 	private $convht;
+	private $act;
 
-	
 	public function __construct($con = null) {
 		
 	}
@@ -53,7 +53,10 @@ class Mhdt{
 	}
 	public function getConvht() {
         return $this->convht;
-    }	
+    }
+	function getAct(){
+		return $this->act;
+	}
 
 //Setters
 	function setIdnorad($idnorad){
@@ -90,17 +93,26 @@ class Mhdt{
         $this->convht = $convht;
         return $this; 
     }
+	function setAct($act){
+		$this->act = $act;
+	}
 
 //Métodos
 	public function getAll(){
 	    try {
-	        $sql = "SELECT h.idnorad, h.codpro, p.nompro, h.idemp, e.nomemp, h.codproesp, s.nomval AS proesp, h.codslem, h.feclini, h.feclin, h.cupo, h.jornada, j.nomval AS jorn, h.idfic, h.convht FROM hojatra AS h  INNER JOIN programa AS p ON h.codpro=p.codpro  INNER JOIN empresa AS e ON h.idemp=e.idemp INNER JOIN valor AS s ON h.codproesp=s.idval INNER JOIN valor AS j ON h.jornada=j.idval ORDER BY h.idnorad DESC";        
+	        $sql = "SELECT h.idnorad, h.codpro, p.nompro, h.idemp, e.nomemp, h.codproesp, s.nomval AS proesp, h.codslem, h.feclini, h.feclin, h.cupo, h.jornada, j.nomval AS jorn, h.idfic, h.convht, h.act 
+			        FROM hojatra AS h  
+					INNER JOIN programa AS p ON h.codpro=p.codpro  
+					INNER JOIN empresa AS e ON h.idemp=e.idemp 
+					INNER JOIN valor AS s ON h.codproesp=s.idval 
+					INNER JOIN valor AS j ON h.jornada=j.idval 
+					ORDER BY h.idnorad DESC";        
 	        $modelo = new conexion();
 	        $conexion = $modelo->get_conexion();
 	        $result = $conexion->prepare($sql);
 	        $result->execute();
 	        $res = $result->fetchall(PDO::FETCH_ASSOC);
-			return $res;
+	        return $res;
 	    } catch (Exception $e) {
 	        if(function_exists('ManejoError')) {
 	            ManejoError($e);
@@ -113,7 +125,13 @@ class Mhdt{
 
 	public function getOne(){
 		try {
-	    	$sql = "SELECT h.idnorad, h.codpro, p.nompro, h.idemp, e.nomemp, h.codproesp, s.nomval AS proesp, h.codslem, h.feclini, h.feclin, h.cupo, h.jornada, j.nomval AS jorn, h.idfic, h.convht FROM hojatra AS h  INNER JOIN programa AS p ON h.codpro=p.codpro  INNER JOIN empresa AS e ON h.idemp=e.idemp INNER JOIN valor AS s ON h.codproesp=s.idval INNER JOIN valor AS j ON h.jornada=j.idval WHERE h.idnorad=:idnorad";
+	    	$sql = "SELECT h.idnorad, h.codpro, p.nompro, h.idemp, e.nomemp, h.codproesp, s.nomval AS proesp, h.codslem, h.feclini, h.feclin, h.cupo, h.jornada, j.nomval AS jorn, h.idfic, h.convht, h.act 
+			        FROM hojatra AS h  
+					INNER JOIN programa AS p ON h.codpro=p.codpro  
+					INNER JOIN empresa AS e ON h.idemp=e.idemp 
+					INNER JOIN valor AS s ON h.codproesp=s.idval 
+					INNER JOIN valor AS j ON h.jornada=j.idval 
+					WHERE h.idnorad=:idnorad";
 			$modelo = new conexion();
 			$conexion = $modelo->get_conexion();
 			$result = $conexion->prepare($sql);
@@ -168,8 +186,8 @@ class Mhdt{
 
 	public function save(){
 		try {
-			$sql = "INSERT INTO hojatra (codpro, idemp, codproesp, feclini, feclin, cupo, jornada) 
-	            VALUES (:codpro, :idemp, :codproesp, :feclini, :feclin, :cupo, :jornada)";
+			$sql = "INSERT INTO hojatra (codpro, idemp, codproesp, codslem, feclini, feclin, cupo, jornada, idfic, convht, act) 
+	            VALUES (:codpro, :idemp, :codproesp, :codslem, :feclini, :feclin, :cupo, :jornada, :idfic, :convht, :act)";
 			$modelo = new conexion();
 			$conexion = $modelo->get_conexion();
 			$result = $conexion->prepare($sql);
@@ -179,6 +197,8 @@ class Mhdt{
 			$result->bindParam(':idemp',$idemp);
 			$codproesp = $this->getCodproesp();
 			$result->bindParam(':codproesp',$codproesp);
+			$codslem = $this->getCodslem();
+			$result->bindParam(':codslem',$codslem);
 			$feclini = $this->getFeclini();
 			$result->bindParam(':feclini',$feclini);
 			$feclin = $this->getFeclin();
@@ -187,18 +207,31 @@ class Mhdt{
 			$result->bindParam(':cupo',$cupo);
 			$jornada = $this->getJornada();
 			$result->bindParam(':jornada',$jornada);
+			$idfic = $this->getIdfic();
+			$result->bindParam(':idfic',$idfic);
+			$convht = $this->getConvht();
+			$result->bindParam(':convht',$convht);
+			$act = $this->getAct() ? $this->getAct() : 1;
+			$result->bindParam(':act',$act);
 	    	$result->execute();
+	    	$lastId = $conexion->lastInsertId();
+	    	return $lastId ? $lastId : true;
 	    } catch (Exception $e) {
 	        if(function_exists('ManejoError')) {
 	            ManejoError($e);
 	        } else {
-	            echo '<script>alert("Error al guardar registro");</script>';
+	            echo '<script>alert("Error al guardar registro: ' . addslashes($e->getMessage()) . '");</script>';
 	        }
+	        return false;
 	    }
 	}
 
 	public function saveHxU(){
 		try {
+			$idusu = isset($_SESSION["idusu"]) ? $_SESSION["idusu"] : null;
+			if(!$idusu) {
+				return;
+			}
 			$sql = "INSERT INTO hdtxusu (idnorad, idusu) 
 	            VALUES (:idnorad, :idusu)";
 			$modelo = new conexion();
@@ -206,14 +239,11 @@ class Mhdt{
 			$result = $conexion->prepare($sql);
 			$idnorad = $this->getIdnorad();
 			$result->bindParam(':idnorad',$idnorad);
-			$idusu = $_SESSION["idusu"];
 			$result->bindParam(':idusu',$idusu);
 	    	$result->execute();
 	    } catch (Exception $e) {
 	        if(function_exists('ManejoError')) {
 	            ManejoError($e);
-	        } else {
-	            echo '<script>alert("Error al asociar usuario");</script>';
 	        }
 	    }
 	}
@@ -267,22 +297,47 @@ class Mhdt{
 	    }
 	}
 
-	public function del(){
+	public function editAct(){
 		try {
-			// Primero eliminar registros relacionados en hdtxusu
-			$sql = "DELETE FROM hdtxusu WHERE idnorad=:idnorad";
+			$sql = "UPDATE hojatra SET act=:act WHERE idnorad=:idnorad";
 			$modelo = new conexion();
 			$conexion = $modelo->get_conexion();
 			$result = $conexion->prepare($sql);
 			$idnorad = $this->getIdnorad();
 			$result->bindParam(':idnorad',$idnorad);
+			$act = $this->getAct();
+			$result->bindParam(':act',$act);
 			$result->execute();
+		} catch (Exception $e) {
+	        if(function_exists('ManejoError')) {
+	            ManejoError($e);
+	        }
+	    }
+	}
+
+	public function del(){
+		try {
+			$modelo = new conexion();
+			$conexion = $modelo->get_conexion();
+			$idnorad = $this->getIdnorad();
+
+			// 1. Eliminar horarios asociados
+			$sqlHor = "DELETE FROM horario WHERE idnorad=:idnorad";
+			$stmtHor = $conexion->prepare($sqlHor);
+			$stmtHor->bindParam(':idnorad',$idnorad);
+			$stmtHor->execute();
+
+			// 2. Eliminar asociación usuario en hdtxusu
+			$sqlUs = "DELETE FROM hdtxusu WHERE idnorad=:idnorad";
+			$stmtUs = $conexion->prepare($sqlUs);
+			$stmtUs->bindParam(':idnorad',$idnorad);
+			$stmtUs->execute();
 			
-			// Luego eliminar la hoja de trabajo
-			$sql = "DELETE FROM hojatra WHERE idnorad=:idnorad";
-			$result = $conexion->prepare($sql);
-			$result->bindParam(':idnorad',$idnorad);
-			$result->execute();
+			// 3. Eliminar la hoja de trabajo
+			$sqlHt = "DELETE FROM hojatra WHERE idnorad=:idnorad";
+			$stmtHt = $conexion->prepare($sqlHt);
+			$stmtHt->bindParam(':idnorad',$idnorad);
+			$stmtHt->execute();
 		} catch (Exception $e) {
 	        if(function_exists('ManejoError')) {
 	            ManejoError($e);

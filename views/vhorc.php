@@ -6,67 +6,63 @@ require_once("controllers/cemp.php");
 <div class="conte">
     <?php echo titulo2("<i class='fas fa-calendar-alt'></i> Programación de Horarios", 2); ?>
     <div class="inser">
+        <form action="home.php?pg=<?=$pg;?>&idnorad=<?=htmlspecialchars($idnorad ?? '');?>" method="POST">
             <div class="row">   
                 <?php if($datOne){ ?>
-                <div class="form-group col-md-12">
+                <div class="form-group col-md-12 mb-3">
                     <h2>Editando Horario No. <?=$datOne[0]['idnorad'];?></h2>
                 </div>
                 <?php } ?>
-                <div class="form-group col-md-6">
-                    <label for="codpro">Programa</label>
-                    <select name="codpro" id="codpro" class="form-control form-select" required>
+
+                <!-- Programa (Definido en Hoja de Trabajo: Bloqueado) -->
+                <div class="form-group col-md-6 mb-3">
+                    <label for="codpro">Programa <i class="fa-solid fa-lock text-muted ms-1" title="Definido en la Hoja de Trabajo"></i></label>
+                    <select id="codpro" class="form-control form-select bg-light" disabled>
                         <?php if($datPr){ foreach($datPr AS $dt){ ?>
                             <option value="<?=$dt["codpro"]; ?>" <?php if($datOne && $datOne[0]['codpro']==$dt['codpro']) echo 'selected'; ?>>
                                 <?=$dt["codpro"]." - ".$dt["nompro"]; ?>
                             </option>
                         <?php }} ?>
                     </select>
+                    <input type="hidden" name="codpro" value="<?=$datOne[0]['codpro'] ?? ''?>">
                 </div>
-                <div class="form-group col-md-6">
-                    <label for="idemp">Empresa</label>
-                    <form method="post" id="formEmpresa" style="display: inline;">
-                        <input type="hidden" name="cambiar_empresa" value="1">
-                        <?php if(isset($_REQUEST['idnorad'])): ?>
-                            <input type="hidden" name="idnorad" value="<?=htmlspecialchars($_REQUEST['idnorad'])?>">
-                        <?php endif; ?>
-                        <?php
-                        // Obtener el ID de la empresa seleccionada
-                        $idemp_selected = '';
-                        if(isset($_POST['idemp'])) {
-                            $idemp_selected = $_POST['idemp'];
-                        } elseif(isset($datOne[0]['idemp'])) {
-                            $idemp_selected = $datOne[0]['idemp'];
-                        }
+
+                <!-- Empresa (Definida en Hoja de Trabajo: Bloqueada) -->
+                <div class="form-group col-md-6 mb-3">
+                    <label for="idemp">Empresa <i class="fa-solid fa-lock text-muted ms-1" title="Definida en la Hoja de Trabajo"></i></label>
+                    <select id="idemp" class="form-control form-select bg-light" disabled>
+                        <?php if($datEm){ 
+                            foreach($datEm as $dt): 
+                                $selected = ($datOne && $datOne[0]['idemp'] == $dt['idemp']) ? 'selected' : '';
                         ?>
-                        <select name="idemp" id="idemp" class="form-control form-select" onchange="this.form.submit()" required>
-                            <?php if($datEm){ 
-                                foreach($datEm as $dt): 
-                                    $selected = ($dt['idemp'] == $idemp_selected) ? 'selected' : '';
-                            ?>
-                                <option value="<?=htmlspecialchars($dt["idemp"]); ?>" <?=$selected?>>
-                                    <?=htmlspecialchars($dt["nomemp"]); ?>
-                                </option>
-                            <?php 
-                                endforeach;
-                            } 
-                            ?>
-                        </select>
-                    </form>
+                            <option value="<?=htmlspecialchars($dt["idemp"]); ?>" <?=$selected?>>
+                                <?=htmlspecialchars($dt["nomemp"]); ?>
+                            </option>
+                        <?php 
+                            endforeach;
+                        } 
+                        ?>
+                    </select>
+                    <input type="hidden" name="idemp" value="<?=$datOne[0]['idemp'] ?? ''?>">
                 </div>
-                <div class="form-group col-md-6">
-                    <label for="codproesp">Programa Especial</label>
-                    <select name="codproesp" id="codproesp" class="form-control form-select" required>
+
+                <!-- Programa Especial (Definido en Hoja de Trabajo: Bloqueado) -->
+                <div class="form-group col-md-6 mb-3">
+                    <label for="codproesp">Programa Especial <i class="fa-solid fa-lock text-muted ms-1" title="Definido en la Hoja de Trabajo"></i></label>
+                    <select id="codproesp" class="form-control form-select bg-light" disabled>
                         <?php if($datPe){ foreach($datPe AS $dt){ ?> 
                             <option value="<?=$dt["idval"]; ?>" <?php if($datOne && $datOne[0]['codproesp']==$dt['idval']) echo 'selected'; ?>>
                                 <?=$dt["nomval"]; ?>
                             </option>
                         <?php }} ?>
                     </select>
+                    <input type="hidden" name="codproesp" value="<?=$datOne[0]['codproesp'] ?? ''?>">
                 </div>
 
-                <div class="form-group col-md-3">
-                    <label for="feclini">Fecha Inicial</label>
-                    <input type="date" name="feclini" id="feclini" class="form-control" value="<?php 
+                <!-- Fecha Inicial (Definida en Hoja de Trabajo: Bloqueada) -->
+                <div class="form-group col-md-3 mb-3">
+                    <label for="feclini">Fecha Inicial <i class="fa-solid fa-lock text-muted ms-1" title="Definida en la Hoja de Trabajo"></i></label>
+                    <input type="date" id="feclini" class="form-control bg-light" value="<?php 
                         if(!empty($datOneHt[0]['feclini'])) {
                             echo $datOneHt[0]['feclini'];
                         } elseif($datOne && $datOne[0]['feclini']) { 
@@ -74,11 +70,14 @@ require_once("controllers/cemp.php");
                         } else { 
                             echo date('Y-m-d'); 
                         } 
-                    ?>" required>
+                    ?>" readonly style="background-color: #e9ecef;">
+                    <input type="hidden" name="feclini" value="<?=$datOne[0]['feclini'] ?? ''?>">
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="feclin">Fecha Final</label>
-                    <input type="date" name="feclin" id="feclin" class="form-control" value="<?php 
+
+                <!-- Fecha Final (Definida en Hoja de Trabajo: Bloqueada) -->
+                <div class="form-group col-md-3 mb-3">
+                    <label for="feclin">Fecha Final <i class="fa-solid fa-lock text-muted ms-1" title="Definida en la Hoja de Trabajo"></i></label>
+                    <input type="date" id="feclin" class="form-control bg-light" value="<?php 
                         if(!empty($datOneHt[0]['feclin'])) {
                             echo $datOneHt[0]['feclin'];
                         } elseif($datOne && $datOne[0]['feclin']) { 
@@ -86,37 +85,49 @@ require_once("controllers/cemp.php");
                         } else { 
                             echo date('Y-m-d'); 
                         } 
-                    ?>" required>
-                </div>
-                <div class="form-group col-md-3">
-                    <label for="cupo">Cupo</label>
-                    <input type="number" min="1" name="cupo" id="cupo" class="form-control" value="<?php if($datOne && $datOne[0]['cupo']) echo $datOne[0]['cupo']; ?>" required>
+                    ?>" readonly style="background-color: #e9ecef;">
+                    <input type="hidden" name="feclin" value="<?=$datOne[0]['feclin'] ?? ''?>">
                 </div>
 
-                <div class="form-group col-md-3">
-                    <label for="jornada">Jornada</label>
-                    <select name="jornada" id="jornada" class="form-control form-select" required>
+                <!-- Cupo (Definido en Hoja de Trabajo: Bloqueado) -->
+                <div class="form-group col-md-3 mb-3">
+                    <label for="cupo">Cupo <i class="fa-solid fa-lock text-muted ms-1" title="Definido en la Hoja de Trabajo"></i></label>
+                    <input type="number" id="cupo" class="form-control bg-light" value="<?php if($datOne && $datOne[0]['cupo']) echo $datOne[0]['cupo']; ?>" readonly style="background-color: #e9ecef;">
+                    <input type="hidden" name="cupo" value="<?=$datOne[0]['cupo'] ?? ''?>">
+                </div>
+
+                <!-- Jornada (Definida en Hoja de Trabajo: Bloqueada) -->
+                <div class="form-group col-md-3 mb-3">
+                    <label for="jornada">Jornada <i class="fa-solid fa-lock text-muted ms-1" title="Definida en la Hoja de Trabajo"></i></label>
+                    <select id="jornada" class="form-control form-select bg-light" disabled>
                         <?php if($datJo){ foreach($datJo AS $dt){ ?>
                             <option value="<?=$dt["idval"]?>" <?php if($datOne && $datOne[0]['jornada']==$dt['idval']) echo 'selected'; ?>>
                                 <?=$dt["nomval"]?>
                             </option>
                         <?php }} ?>
                     </select>
+                    <input type="hidden" name="jornada" value="<?=$datOne[0]['jornada'] ?? ''?>">
                 </div>
                                                 
-                <div class="form-group col-md-3">
-                    <label for="idfic">Cod. Ficha</label>
-                    <input type="number" name="idfic" id="idfic" class="form-control" value="<?php if($datOne && $datOne[0]['idfic']) echo $datOne[0]['idfic']; ?>">
+                <!-- Cod. Ficha (Editable: No pertenece a la Hoja de Trabajo inicial) -->
+                <div class="form-group col-md-3 mb-3">
+                    <label for="idfic" class="fw-semibold">Cod. Ficha</label>
+                    <input type="number" name="idfic" id="idfic" class="form-control" value="<?php if($datOne && $datOne[0]['idfic']) echo $datOne[0]['idfic']; ?>" placeholder="Opcional">
                 </div>
-                <div class="form-group col-md-3">
-                    <label for="codslem">Cod. Solicitud Empresa</label>
-                    <input type="text" name="codslem" id="codslem" class="form-control" value="<?php if($datOne && $datOne[0]['codslem']) echo $datOne[0]['codslem']; ?>">
+
+                <!-- Cod. Solicitud Empresa (Editable: No pertenece a la Hoja de Trabajo inicial) -->
+                <div class="form-group col-md-3 mb-3">
+                    <label for="codslem" class="fw-semibold">Cod. Solicitud Empresa</label>
+                    <input type="text" name="codslem" id="codslem" class="form-control" value="<?php if($datOne && $datOne[0]['codslem']) echo $datOne[0]['codslem']; ?>" placeholder="Opcional">
                 </div>
-                <div class="form-group col-md-6">
-                    <label for="convht">Convenio</label>
-                    <input type="text" name="convht" id="convht" class="form-control" value="<?php if($datOne && $datOne[0]['convht']) echo $datOne[0]['convht']; ?>">
+
+                <!-- Convenio (Editable: No pertenece a la Hoja de Trabajo inicial) -->
+                <div class="form-group col-md-6 mb-3">
+                    <label for="convht" class="fw-semibold">Convenio</label>
+                    <input type="text" name="convht" id="convht" class="form-control" value="<?php if($datOne && $datOne[0]['convht']) echo $datOne[0]['convht']; ?>" placeholder="Opcional">
                 </div>
-                <div class="form-group col-md-3">
+
+                <div class="form-group col-md-12 mt-2">
                     <input type="submit" class="btn btn-primary" value="<?=isset($datOne) ? 'Actualizar' : 'Guardar'?>">
                     <input type="hidden" name="opera" value="save">
                     <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
@@ -126,102 +137,140 @@ require_once("controllers/cemp.php");
     </div>
 </div>
 <br>
+
 <!-- DATOS DE LA EMPRESA -->
-<div class="card">
+<?php if(!empty($datOneEmp) && is_array($datOneEmp) && !empty($datOneEmp[0])): 
+    $empresa = $datOneEmp[0];
+?>
+<div class="card mb-3 shadow-sm">
     <div class="card-body">
-    <?php 
-    // Verificar si hay datos de empresa para mostrar
-    if(!empty($datOneEmp) && is_array($datOneEmp) && !empty($datOneEmp[0])): 
-        $empresa = $datOneEmp[0];
-    ?>
-        <h4 class="card-title">
-            Datos de la Empresa 
+        <h4 class="card-title text-secondary">
+            <i class="fa-solid fa-building me-2 text-primary"></i>Datos de la Empresa 
         </h4>
-        <div class="row">
+        <div class="row g-3">
             <?php if(isset($empresa['numdocemp'])): ?>
             <div class="col-md-2">
-                <div class="fw-bold">NIT</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['numdocemp'])?></div>
+                <div class="fw-bold text-muted">NIT</div>
+                <div class="form-control bg-light"><?=htmlspecialchars($empresa['numdocemp'])?></div>
             </div>
             <?php endif; ?>
             <?php if(isset($empresa['nomemp'])): ?>
             <div class="col-md-5">
-                <div class="fw-bold">Empresa</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['nomemp'])?></div>
+                <div class="fw-bold text-muted">Empresa</div>
+                <div class="form-control bg-light"><?=htmlspecialchars($empresa['nomemp'])?></div>
             </div>
             <?php endif; ?>
             
             <?php if(isset($empresa['diremp'])): ?>
             <div class="col-md-5">
-                <div class="fw-bold">Dirección</div>
-                <div class="form-control d-inline-block">
+                <div class="fw-bold text-muted">Dirección</div>
+                <div class="form-control bg-light">
                     <?=htmlspecialchars($empresa['diremp'])?> 
-                    <?=htmlspecialchars($empresa['nommun'])?> 
-                    <?=htmlspecialchars($empresa['nomdep'])?>
+                    <?=htmlspecialchars($empresa['nommun'] ?? '')?> 
+                    <?=htmlspecialchars($empresa['nomdep'] ?? '')?>
                 </div>
             </div>
             <?php endif; ?>
 
             <?php if(isset($empresa['nomconemp'])): ?>
             <div class="col-md-7">
-                <div class="fw-bold">Contacto</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['nomconemp'])?></div>
+                <div class="fw-bold text-muted">Contacto</div>
+                <div class="form-control bg-light"><?=htmlspecialchars($empresa['nomconemp'])?></div>
             </div>
             <?php endif; ?>
             
             <?php if(isset($empresa['telemp'])): ?>
             <div class="col-md-5">
-                <div class="fw-bold">Teléfono</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['telemp'])?></div>
+                <div class="fw-bold text-muted">Teléfono</div>
+                <div class="form-control bg-light"><?=htmlspecialchars($empresa['telemp'])?></div>
             </div>
             <?php endif; ?>
         </div>
-        <p class="card-text small"></p>
     </div>
 </div>
 <?php endif; ?>
-<br>
+
 <!-- PROGRAMA -->
-<div class="card">
+<?php if(!empty($dtpro) && is_array($dtpro) && !empty($dtpro[0])): 
+    $proInfo = $dtpro[0];
+?>
+<div class="card mb-3 shadow-sm">
     <div class="card-body">
-    <?php 
-    // Verificar si hay datos de empresa para mostrar
-    if(!empty($datOneEmp) && is_array($datOneEmp) && !empty($datOneEmp[0])): 
-        $empresa = $datOneEmp[0];
-    ?>
-        <h4 class="card-title">
-            Programa
+        <h4 class="card-title text-secondary">
+            <i class="fa-solid fa-graduation-cap me-2 text-primary"></i>Programa de Formación
         </h4>
-        <div class="row">
-            <?php if(isset($empresa['numdocemp'])): ?>
+        <div class="row g-3">
             <div class="col-md-8">
-                <div class="fw-bold">Nombre</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['numdocemp'])?></div>
+                <div class="fw-bold text-muted">Nombre del Programa</div>
+                <div class="form-control bg-light"><?=htmlspecialchars(($proInfo['codpro'] ?? '') . ' - ' . ($proInfo['nompro'] ?? ''))?></div>
             </div>
-            <?php endif; ?>
-            <?php if(isset($empresa['nomemp'])): ?>
             <div class="col-md-2">
-                <div class="fw-bold">Versión</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['nomemp'])?></div>
+                <div class="fw-bold text-muted">Versión</div>
+                <div class="form-control bg-light"><?=htmlspecialchars($proInfo['verpro'] ?? 'N/A')?></div>
             </div>
-            <?php endif; ?>
-            
-            <?php if(isset($empresa['diremp'])): ?>
             <div class="col-md-2">
-                <div class="fw-bold">Horas</div>
-                <div class="form-control d-inline-block">
-                    <?=htmlspecialchars($empresa['diremp'])?> 
-                    <?=htmlspecialchars($empresa['nommun'])?> 
-                    <?=htmlspecialchars($empresa['nomdep'])?>
+                <div class="fw-bold text-muted">Duración (Horas)</div>
+                <div class="form-control bg-light"><?=htmlspecialchars($proInfo['horlpro'] ?? 'N/A')?></div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- DATOS DEL INSTRUCTOR -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title text-secondary mb-0">
+                <i class="fa-solid fa-chalkboard-user me-2 text-primary"></i>Instructor Asignado
+            </h4>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Asignar Instructor">
+                <i class="fa-solid fa-user-plus me-1"></i> Asignar Instructor
+            </button>
+        </div>
+
+        <?php if(!empty($datInsHdt)): ?>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Documento</th>
+                            <th>Correo Electrónico</th>
+                            <th>Teléfono</th>
+                            <th class="text-center" style="width: 80px;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($datInsHdt as $inst): ?>
+                            <tr>
+                                <td class="fw-semibold"><?=htmlspecialchars($inst['nomusu'])?></td>
+                                <td><?=htmlspecialchars($inst['ndocusu'] ?? 'N/A')?></td>
+                                <td><?=htmlspecialchars($inst['emausu'] ?? 'N/A')?></td>
+                                <td><?=htmlspecialchars($inst['telcan'] ?? 'N/A')?></td>
+                                <td class="text-center">
+                                    <a href="home.php?pg=<?=$pg?>&idnorad=<?=$idnorad?>&opera=EliIns&idusu=<?=$inst['idusu']?>" 
+                                       class="btn btn-outline-danger btn-sm" 
+                                       title="Retirar Instructor" 
+                                       onclick="return confirm('¿Está seguro de retirar este instructor de la hoja de trabajo?');">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2 fa-lg"></i>
+                <div>
+                    No hay ningún instructor asignado a esta hoja de trabajo. Haga clic en <strong>"Asignar Instructor"</strong> para asociar uno.
                 </div>
             </div>
-            <?php endif; ?>
-        </div>
-        <p class="card-text small"></p>
+        <?php endif; ?>
     </div>
 </div>
-<?php endif; ?>
-<br>
 
 <!-- INSERCION DE HORARIO -->
 <div class="card">
@@ -341,10 +390,10 @@ require_once("controllers/cemp.php");
         </tbody>
     </table>
     <div class="text-center mt-3">
-                    <input onClick={guardar()} class="btn btn-primary" value="Guardar">
-                    <input type="hidden" name="opera" value="save">
-                    <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
-                </div>
+        <button type="button" onclick="if(typeof guardar === 'function'){ guardar(); } else { alert('Horario guardado'); }" class="btn btn-primary">Guardar Horario</button>
+        <input type="hidden" name="opera" value="save">
+        <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
+    </div>
 </div>
  </div>
  </div>

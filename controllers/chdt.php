@@ -26,8 +26,8 @@ $idfic = isset($_POST["idfic"]) ? $_POST["idfic"] : NULL;
 $convht = isset($_POST["convht"]) ? $_POST["convht"] : NULL;
 
 $opera = isset($_REQUEST['opera']) ? $_REQUEST['opera'] : NULL;
+$act = isset($_REQUEST['act']) ? $_REQUEST['act'] : NULL;
 $datOne = NULL;
-
 
 if($idnorad) {
     $mhdt->setIdnorad($idnorad);
@@ -50,23 +50,32 @@ if($opera == "save") {
         $mhdt->setConvht($convht);
         
         if(!$idnorad) { 
-            
-            $mhdt->save();
-            $idnorad2 = $mhdt->getOneLast();
-            if($idnorad2 && count($idnorad2) > 0) {
-                $idnorad2 = $idnorad2[0]['idnorad'];
-                $mhdt->setIdnorad($idnorad2);
+            $newId = $mhdt->save();
+            if(!$newId || !is_numeric($newId)) {
+                $idnorad2 = $mhdt->getOneLast();
+                if($idnorad2 && count($idnorad2) > 0) {
+                    $newId = $idnorad2[0]['idnorad'];
+                }
+            }
+            if($newId) {
+                $mhdt->setIdnorad($newId);
                 $mhdt->saveHxU();
-                echo "<script>alert('Hoja de trabajo creada exitosamente'); window.location.href='home.php?pg=2002&idnorad=".$idnorad2."';</script>";
+                echo "<script>alert('Hoja de trabajo creada exitosamente'); window.location.href='home.php?pg=2002&idnorad=".$newId."';</script>";
             } else {
                 echo '<script>err("Error al crear la hoja de trabajo.");</script>';
             }
         } else {
-            
             $mhdt->edit();
             echo '<script>alert("Hoja de trabajo actualizada exitosamente"); window.location.href="home.php?pg='.$pg.'";</script>';
         }
     }
+}
+
+if($opera == "acti" && $idnorad && $act) {
+    $mhdt->setAct($act);
+    $mhdt->editAct();
+    echo '<script>window.location.href="home.php?pg='.$pg.'";</script>';
+    exit;
 }
 
 if($opera == "eli" && $idnorad) {
@@ -75,7 +84,7 @@ if($opera == "eli" && $idnorad) {
 }
 
 if($opera == "edi" && $idnorad) {
-    $datOne = $mhdt->getOne($idnorad);
+    $datOne = $mhdt->getOne();
 }
 
 $datPr = $mhdt->getAllPro();
