@@ -88,16 +88,13 @@ class Mhorc {
             $modelo = new conexion();
             $conexion = $modelo->get_conexion();
             
-            // Verificar si ya existe la asignación
-            $checkSql = "SELECT COUNT(*) FROM hdtxusu WHERE idnorad = :idnorad AND idusu = :idusu";
-            $checkStmt = $conexion->prepare($checkSql);
-            $checkStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $checkStmt->bindParam(':idusu', $idusu, PDO::PARAM_INT);
-            $checkStmt->execute();
-            if ($checkStmt->fetchColumn() > 0) {
-                return true; // Ya está asignado
-            }
+            // Primero eliminar cualquier instructor existente para esta hoja de trabajo (solo uno permitido)
+            $deleteSql = "DELETE FROM hdtxusu WHERE idnorad = :idnorad";
+            $deleteStmt = $conexion->prepare($deleteSql);
+            $deleteStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+            $deleteStmt->execute();
 
+            // Insertar el nuevo instructor
             $sql = "INSERT INTO hdtxusu (idnorad, idusu) VALUES (:idnorad, :idusu)";
             $stmt = $conexion->prepare($sql);
             $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
