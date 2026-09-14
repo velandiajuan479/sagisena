@@ -2,6 +2,7 @@
 require_once("controllers/chorc.php"); 
 require_once("controllers/chdt.php");
 require_once("controllers/cemp.php");
+require_once("models/mhorc.php");
 ?>
 <div class="conte">
     <?php echo titulo2("<i class='fas fa-calendar-alt'></i> Programación de Horarios", 2); ?>
@@ -334,61 +335,121 @@ require_once("controllers/cemp.php");
         </thead>
         <tbody id="horario_body">
             <?php
-            if(!empty($datOneHt) && is_array($datOneHt) && !empty($datOneHt[0]) && 
+            if(!empty($datOneHt) && is_array($datOneHt) && !empty($datOneHt[0]) &&
                !empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
-                $dias_espanol = [
-                    'Monday' => 'Lunes',
-                    'Tuesday' => 'Martes',
-                    'Wednesday' => 'Miércoles',
-                    'Thursday' => 'Jueves',
-                    'Friday' => 'Viernes',
-                    'Saturday' => 'Sábado',
-                    'Sunday' => 'Domingo'
-                ];
                 
-                try {
-                    $fecha_inicio = new DateTime($datOneHt[0]['feclini']);
-                    $fecha_fin = new DateTime($datOneHt[0]['feclin']);
-                    $intervalo = new DateInterval('P1D');
-                    $periodo = new DatePeriod($fecha_inicio, $intervalo, $fecha_fin->modify('+1 day'));
-                } catch (Exception $e) {
-                    // Si hay un error al crear las fechas, no mostramos el horario
-                    echo '<tr><td colspan="3" class="text-danger">Error al procesar las fechas del horario.</td></tr>';
-                    return;
-                }
-
-                // Agrupar fechas por día de la semana
-                $fechas_por_dia = [];
-                foreach($periodo as $fecha) {
-                    $dia_ingles = $fecha->format('l');
-                    $fechas_por_dia[$dia_ingles][] = clone $fecha;
-                }
-                foreach($dias_espanol as $dia_ingles => $dia_espanol) {
-                    if (!isset($fechas_por_dia[$dia_ingles])) continue;
-                    echo '<tr class="table-primary"><td colspan="3"><strong>'.$dia_espanol.'</strong></td></tr>';
-                    foreach($fechas_por_dia[$dia_ingles] as $fecha) {
-                        $fecha_formateada = $fecha->format('d/m/Y');
-                        $unique_id = $fecha->format('Ymd');
-                        ?>
-                        <tr id="row-<?php echo $unique_id; ?>">
-                            <td style="padding-left:2em;"> <?php echo $fecha_formateada; ?>
-                                <input type="hidden" name="fecha[]" value="<?php echo $fecha->format('Y-m-d'); ?>">
-                            </td>
-                            <td>
-                                <input type="time" name="hora_inicio[]" class="form-control" value="" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
-                            </td>
-                            <td>
-                                <input type="time" name="hora_fin[]" class="form-control" value="" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
-                            </td>
+                // Obtener duración del curso en horas
+                $duracionCurso = isset($dtpro[0]['horlpro']) ? floatval($dtpro[0]['horlpro']) : 0;
+                
+                // Obtener horarios ya guardados para esta hoja de trabajo
+                $mhorc_model = new Mhorc();
+                $mhorc_model->setIdnorad($idnorad);
+                $horariosGuardados = $mhorc_model->getAll();
+                
+                // Convertir horarios guardados a un array indexado por fecha
+                $horariosPorFecha = [];
+                $totalHorasAsignadas = 0;
+                if(!empty($horariosGuardados)) {
+                    foreach($horariosGuardados as $h) {
+                        $fecha = isset($h['fecha']) ? $h['fecha'] : null;
+                        if($fecha) {
+                            if(!isset($horariosPorFecha[$fecha])) {
+                                $horariosPorFecha[$fecha] = [];
+                            }
+                            $horariosPorFecha[$fecha][] = $h;
                             
-                        </tr>
-                        <?php
+                            // Calcular horas asignadas
+                            if(isset($h['hinihor']) && isset($h['hfinhor'])) {
+                                $inicio = strtotime($h['hinihor']);
+                                $fin = strtotime($h['hfinhor']);
+                                if($inicio && $fin) {
+                                    $totalHorasAsignadas += ($fin - $inicio) / 3600;
+                                }
+                            }
+                        }
                     }
+                }
+                
+                // Mostrar solo las fechas que tienen horarios asignados
+                if(!empty($horariosPorFecha)) {
+                    // Ordenar fechas
+                    ksort($horariosPorFecha);
+                    
+                    foreach($horariosPorFecha as $fecha => $horarios) {
+                        $fechaObj = DateTime::createFromFormat('Y-m-d', $fecha);
+                        if($fechaObj) {
+                            $diaSemana = $fechaObj->format('l');
+                            $dias_espanol = [
+                                'Monday' => 'Lunes',
+                                'Tuesday' => 'Martes',
+                                'Wednesday' => 'Miércoles',
+                                'Thursday' => 'Jueves',
+                                'Friday' => 'Viernes',
+                                'Saturday' => 'Sábado',
+                                'Sunday' => 'Domingo'
+                            ];
+                            $diaEspanol = isset($dias_espanol[$diaSemana]) ? $dias_espanol[$diaSemana] : $diaSemana;
+                            $fechaFormateada = $fechaObj->format('d/m/Y');
+                            $unique_id = $fechaObj->format('Ymd');
+                            
+                            echo '<tr class="table-primary"><td colspan="3"><strong>'.$diaEspanol.' '.$fechaFormateada.'</strong></td></tr>';
+                            
+                            foreach($horarios as $h) {
+                                $horaInicio = isset($h['hinihor']) ? $h['hinihor'] : '';
+                                $horaFin = isset($h['hfinhor']) ? $h['hfinhor'] : '';
+                                ?>
+                                <tr id="row-<?php echo $unique_id; ?>">
+                                    <td style="padding-left:2em;"><?php echo $fechaFormateada; ?>
+                                        <input type="hidden" name="fecha[]" value="<?php echo $fecha; ?>">
+                                        <input type="hidden" name="idhorario[]" value="<?php echo isset($h['idhorario']) ? $h['idhorario'] : ''; ?>">
+                                    </td>
+                                    <td>
+                                        <input type="time" name="hora_inicio[]" class="form-control" value="<?php echo $horaInicio; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                    </td>
+                                    <td>
+                                        <input type="time" name="hora_fin[]" class="form-control" value="<?php echo $horaFin; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+                        }
+                    }
+                } else {
+                    echo '<tr><td colspan="3" class="text-center text-muted">No hay horarios asignados. Use la sección "Agregar Horario" para crear uno.</td></tr>';
                 }
             }
             ?>
         </tbody>
-    </table>
+                            $unique_id = $fechaObj->format('Ymd');
+                            
+                            echo '<tr class="table-primary"><td colspan="3"><strong>'.$diaEspanol.' '.$fechaFormateada.'</strong></td></tr>';
+                            
+                            foreach($horarios as $h) {
+                                $horaInicio = isset($h['hinihor']) ? $h['hinihor'] : '';
+                                $horaFin = isset($h['hfinhor']) ? $h['hfinhor'] : '';
+                                ?>
+                                <tr id="row-<?php echo $unique_id; ?>">
+                                    <td style="padding-left:2em;"><?php echo $fechaFormateada; ?>
+                                        <input type="hidden" name="fecha[]" value="<?php echo $fecha; ?>">
+                                        <input type="hidden" name="idhorario[]" value="<?php echo isset($h['idhorario']) ? $h['idhorario'] : ''; ?>">
+                                    </td>
+                                    <td>
+                                        <input type="time" name="hora_inicio[]" class="form-control" value="<?php echo $horaInicio; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                    </td>
+                                    <td>
+                                        <input type="time" name="hora_fin[]" class="form-control" value="<?php echo $horaFin; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+                        }
+                    }
+                } else {
+                    echo '<tr><td colspan="3" class="text-center text-muted">No hay horarios asignados. Use la sección "Agregar Horario" para crear uno.</td></tr>';
+                }
+            }
+            ?>
+        </tbody>
     <div class="text-center mt-3">
         <button type="button" onclick="if(typeof guardar === 'function'){ guardar(); } else { alert('Horario guardado'); }" class="btn btn-primary">Guardar Horario</button>
         <input type="hidden" name="opera" value="save">
