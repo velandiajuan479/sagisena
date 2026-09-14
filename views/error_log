@@ -1,0 +1,2 @@
+[22-Sep-2025 19:55:07 UTC] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in /home/senacdac/public_html/sagi/vendor/dompdf/dompdf/src/Cellmap.php on line 467
+[22-Sep-2025 19:58:50 UTC] PHP Fatal error:  Maximum execution time of 30 seconds exceeded in /home/senacdac/public_html/sagi/vendor/dompdf/dompdf/src/FrameDecorator/AbstractFrameDecorator.php on line 221

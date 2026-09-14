@@ -1,0 +1,133 @@
+<?php
+require_once("models/mhorc.php");
+require_once("models/mhdt.php");
+require_once("models/memp.php");
+require_once("models/mccm.php");
+
+// Inicializar variables
+$idnorad = isset($_REQUEST["idnorad"]) ? $_REQUEST["idnorad"] : NULL;
+
+// Inicializar objetos
+$mhorc = new Mhorc();
+$mhdt = new Mhdt();
+$memp = new Memp();
+$mccm = new Mccm();
+
+// Inicializar variables
+$datOne = [];
+$datOneEmp = [];
+$datOneHt = [];
+$idemp_actual = null;
+
+
+$mhdt->setIdnorad($idnorad);
+$dthdt = $mhdt->getOne();
+
+if($dthdt){
+    $mccm->setCodpro($dthdt[0]["codpro"]);
+    $dtpro = $mccm->getOne();
+    //var_dump($dtpro);
+}
+
+// Manejar el cambio de empresa (tanto para registros existentes como nuevos)
+if(isset($_POST['cambiar_empresa']) && !empty($_POST['idemp'])) {
+    $idemp_actual = $_POST['idemp'];
+    
+    // Si es un registro existente
+    if($idnorad) {
+        // Cargar datos actuales primero
+        $mhdt->setIdnorad($idnorad);
+        $datos_actuales = $mhdt->getOne();
+        
+        if(!empty($datos_actuales[0])) {
+            // Guardar TODOS los datos actuales importantes, no solo las fechas
+            $datos_guardar = $datos_actuales[0];
+            
+            // Actualizar solo el campo de empresa
+            $mhdt->setIdemp($idemp_actual);
+            
+            // Mantener los datos existentes al actualizar
+            $mhdt->setFeclini($datos_guardar['feclini'] ?? null);
+            $mhdt->setFeclin($datos_guardar['feclin'] ?? null);
+            $mhdt->setCupo($datos_guardar['cupo'] ?? null);
+            $mhdt->setJornada($datos_guardar['jornada'] ?? null);
+            
+            // Realizar la actualización
+            $mhdt->edit();
+            
+            // Recargar los datos actualizados
+            $datOneHt = $mhdt->getOne();
+            
+            // Asegurarse de que los datos mostrados incluyan la información actualizada
+            if (!empty($datOneHt[0])) {
+                // Mantener los datos guardados en la visualización
+                $datOneHt[0] = array_merge($datOneHt[0], $datos_guardar);
+                // Asegurar que el idemp sea el correcto
+                $datOneHt[0]['idemp'] = $idemp_actual;
+                // Asegurar que las fechas se mantengan
+                $datOneHt[0]['feclini'] = $datos_guardar['feclini'];
+                $datOneHt[0]['feclin'] = $datos_guardar['feclin'];
+            } else {
+                // Si no se cargaron los datos actualizados, usar los guardados
+                $datOneHt = $datos_actuales;
+                $datOneHt[0]['idemp'] = $idemp_actual;
+            }
+        }
+    }
+    
+    // Cargar datos de la empresa seleccionada
+    $memp->setIdemp($idemp_actual);
+    $datOneEmp = $memp->getOne();
+}
+// Si no se está cambiando la empresa pero hay un idnorad, cargar datos normales
+else if($idnorad) {
+    // Cargar datos de la hoja de trabajo
+    $mhdt->setIdnorad($idnorad);
+    $datOneHt = $mhdt->getOne();
+    
+    // Cargar datos de la empresa si existe idemp
+    if(!empty($datOneHt[0]['idemp'])) {
+        $memp->setIdemp($datOneHt[0]['idemp']);
+        $datOneEmp = $memp->getOne();
+    }
+}
+
+// Asignar datos a $datOne si hay datos de hoja de trabajo
+if(!empty($datOneHt) && !empty($datOneHt[0])) {
+    $datOne = $datOneHt;
+    
+    // Forzar la carga de las fechas desde la hoja de trabajo
+    if (isset($datOne[0]['feclini']) && isset($datOne[0]['feclin'])) {
+        // Asegurarse de que las fechas estén en el formato correcto
+        $feclini = new DateTime($datOne[0]['feclini']);
+        $feclin = new DateTime($datOne[0]['feclin']);
+        
+        // Actualizar los valores en el array
+        $datOne[0]['feclini'] = $feclini->format('Y-m-d');
+        $datOne[0]['feclin'] = $feclin->format('Y-m-d');
+    }
+}
+
+// Si no hay idnorad pero se ha seleccionado una empresa (caso de nuevo registro)
+if(empty($idnorad) && !empty($_POST['idemp']) && empty($datOneEmp)) {
+    $memp->setIdemp($_POST['idemp']);
+    $datOneEmp = $memp->getOne();
+}
+
+if($opera == "save") {
+    $mhorc->setiddia($iddia);
+    $mhorc->setHinihor($hinihor);
+    $mhorc->setHfinhor($hfinhor);
+    $mhorc->setIdnorad($idnorad);
+    $mhorc->setIdaul($idaul);
+    if(!$idnorad){ 
+        $mhdt->save();
+        $idnorad2 = $mhdt->getOneLast();
+        if($idnorad2) $idnorad2 = $idnorad2[0]['idnorad'];
+        $mhdt->setIdnorad($idnorad2);
+        $mhdt->saveHxU();
+    }
+}
+
+
+?>

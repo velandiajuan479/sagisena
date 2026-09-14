@@ -1,0 +1,39 @@
+@font-face{
+	font-family: arial;
+	font-style:normal;
+	font-weight:100;
+	src:url(../font/arial.ttf);
+}
+body{
+	font-size: 12px;
+	font-family: arial;
+}
+table{
+	width: 710px;
+}
+
+.border-dark{
+	border: 1px solid #000;
+}
+.titabl{
+	background-color: #000;
+	color: #fff;
+}
+
+.tds1{
+	font-size: 18px;
+	font-weight: bold;
+	text-align: center;
+}
+.tds2{
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+}
+.tds3{
+	font-size: 12px;
+	font-weight: bold;
+}
+.tds4{
+	font-size: 12px;
+}

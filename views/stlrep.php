@@ -1,0 +1,44 @@
+<?php
+$html .= '<!DOCTYPE html>';
+$html .= '<html lang="en">';
+$html .= '<head>';
+    $html .= '<meta charset="UTF-8">';
+    $html .= '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+    $html .= '<title>Reportes</title>';
+
+$html .= '<style>';
+    $html .= '* {';
+        $html .= 'margin: 0;';
+        $html .= 'padding: 5px;';
+        $html .= 'text-align: center;';
+        $html .= 'font-size: 10px;';
+        $html .= 'font-family: Arial, Helvetica, sans-serif;';
+    $html .= '}';
+    $html .= 'table{';
+    $html .= 'width: 100%;';
+    $html .= 'margin: auto;';
+    $html .= '}';
+    $html .= 'table, th, td {';
+        $html .= 'border: 1px solid;';
+        $html .= 'border-collapse: collapse;';
+    $html .= '}';
+    $html .= 'img{';
+        $html .= 'height: 50px;';
+        $html .= 'width: 50px;';
+    $html .= '}';
+    $html .= '.version, .gpf{';
+        $html .= 'max-width: 30px;';
+    $html .= '}';
+    $html .= '.pri{';
+        $html .= 'text-align: left;';
+        $html .= 'height: 10px;';
+    $html .= '}';
+    $html .= '.dato{';
+        $html .= 'height: 20px;';
+    $html .= '}';
+    $html .= 'input{';
+        $html .= 'width: 100%;';
+    $html .= '}';
+$html .= '</style>';
+$html .= '</head>';
+?>

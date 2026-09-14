@@ -1,0 +1,24 @@
+[23-Sep-2025 14:50:13 UTC] Búsqueda de empleados. Dependencia: 1, Documento: 
+[23-Sep-2025 14:50:13 UTC] Usuarios pendientes encontrados para dependencia 1: 2
+[23-Sep-2025 14:50:13 UTC] Total empleados encontrados antes de filtrar: 2
+[23-Sep-2025 14:50:21 UTC] Búsqueda de empleados. Dependencia: 1, Documento: 
+[23-Sep-2025 14:50:21 UTC] Usuarios pendientes encontrados para dependencia 1: 2
+[23-Sep-2025 14:50:21 UTC] Total empleados encontrados antes de filtrar: 2
+[23-Sep-2025 14:52:26 UTC] Búsqueda de empleados. Dependencia: 1, Documento: 
+[23-Sep-2025 14:52:26 UTC] Usuarios pendientes encontrados para dependencia 1: 2
+[23-Sep-2025 14:52:26 UTC] Total empleados encontrados antes de filtrar: 2
+[23-Sep-2025 14:55:53 UTC] Búsqueda de empleados. Dependencia: 1, Documento: 
+[23-Sep-2025 14:55:53 UTC] Usuarios pendientes encontrados para dependencia 1: 2
+[23-Sep-2025 14:55:53 UTC] Total empleados encontrados antes de filtrar: 2
+[23-Sep-2025 16:03:22 UTC] PHP Warning:  Undefined array key "nombre" in /home/senacdac/public_html/sagi/controllers/cpys.php on line 57
+[23-Sep-2025 16:05:04 UTC] Búsqueda de empleados. Dependencia: 1, Documento: 
+[23-Sep-2025 16:05:04 UTC] Usuarios pendientes encontrados para dependencia 1: 2
+[23-Sep-2025 16:05:04 UTC] Total empleados encontrados antes de filtrar: 2
+[23-Sep-2025 16:05:09 UTC] Búsqueda de empleados. Dependencia: 2, Documento: 
+[23-Sep-2025 16:05:09 UTC] Usuarios pendientes encontrados para dependencia 2: 4
+[23-Sep-2025 16:05:09 UTC] Total empleados encontrados antes de filtrar: 4
+[23-Sep-2025 16:05:16 UTC] Búsqueda de empleados. Dependencia: 8, Documento: 
+[23-Sep-2025 16:05:16 UTC] Usuarios pendientes encontrados para dependencia 8: 0
+[23-Sep-2025 16:05:16 UTC] Total empleados encontrados antes de filtrar: 0
+[23-Sep-2025 16:14:57 UTC] PHP Warning:  Undefined array key "nombre" in /home/senacdac/public_html/sagi/controllers/cpys.php on line 57
+[23-Sep-2025 16:15:01 UTC] PHP Warning:  Undefined array key "nombre" in /home/senacdac/public_html/sagi/controllers/cpys.php on line 57
