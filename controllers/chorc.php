@@ -17,6 +17,7 @@ $mccm = new Mccm();
 $datOne = [];
 $datOneEmp = [];
 $datOneHt = [];
+$datHorariosOcupados = [];
 $idemp_actual = null;
 
 
@@ -114,19 +115,65 @@ if(empty($idnorad) && !empty($_POST['idemp']) && empty($datOneEmp)) {
     $datOneEmp = $memp->getOne();
 }
 
-if($opera == "save") {
-    $mhorc->setiddia($iddia);
-    $mhorc->setHinihor($hinihor);
-    $mhorc->setHfinhor($hfinhor);
-    $mhorc->setIdnorad($idnorad);
-    $mhorc->setIdaul($idaul);
-    if(!$idnorad){ 
-        $mhdt->save();
-        $idnorad2 = $mhdt->getOneLast();
-        if($idnorad2) $idnorad2 = $idnorad2[0]['idnorad'];
-        $mhdt->setIdnorad($idnorad2);
-        $mhdt->saveHxU();
+// Manejar guardado de horario
+if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
+    if(isset($_POST['datos']) && !empty($_POST['idnorad'])) {
+        $datos_json = json_decode($_POST['datos'], true);
+        $idnorad_save = $_POST['idnorad'];
+        
+        if(is_array($datos_json)) {
+            $exito = true;
+            foreach($datos_json as $dato) {
+                $fecha = isset($dato['fecha']) ? $dato['fecha'] : null;
+                $hora_inicio = isset($dato['hora_inicio']) ? $dato['hora_inicio'] : null;
+                $hora_fin = isset($dato['hora_fin']) ? $dato['hora_fin'] : null;
+                
+                if($fecha && $hora_inicio && $hora_fin) {
+                    // Verificar si ya existe un horario para esta fecha
+                    $mhorc_check = new Mhorc();
+                    $mhorc_check->setFechaEspecifica($fecha);
+                    $mhorc_check->setIdnorad($idnorad_save);
+                    $existe = $mhorc_check->getByFecha();
+                    
+                    if(empty($existe)) {
+                        // Insertar nuevo horario
+                        $mhorc_ins = new Mhorc();
+                        $mhorc_ins->setFechaEspecifica($fecha);
+                        $mhorc_ins->setHinihor($hora_inicio);
+                        $mhorc_ins->setHfinhor($hora_fin);
+                        $mhorc_ins->setIdnorad($idnorad_save);
+                        $mhorc_ins->saveConFecha();
+                    } else {
+                        // Actualizar horario existente
+                        $mhorc_upd = new Mhorc();
+                        $mhorc_upd->setIdhor($existe[0]['idhor']);
+                        $mhorc_upd->setFechaEspecifica($fecha);
+                        $mhorc_upd->setHinihor($hora_inicio);
+                        $mhorc_upd->setHfinhor($hora_fin);
+                        $mhorc_upd->setIdnorad($idnorad_save);
+                        $mhorc_upd->editConFecha();
+                    }
+                }
+            }
+            
+            if($exito) {
+                echo json_encode(['success' => true, 'message' => 'Horario guardado exitosamente']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al guardar algunos horarios']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
+        }
+        exit;
     }
+}
+
+// Obtener horarios ocupados para otras fichas en el rango de fechas
+if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
+    $mhorc->setFeclini($datOneHt[0]['feclini']);
+    $mhorc->setFeclin($datOneHt[0]['feclin']);
+    $mhorc->setIdnorad($idnorad); // Excluir los horarios de esta ficha
+    $datHorariosOcupados = $mhorc->getHorariosOcupados();
 }
 
 
