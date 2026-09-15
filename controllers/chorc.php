@@ -214,6 +214,12 @@ if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
     $datHorariosOcupados = [];
 }
 
+// Obtener datos para los selectores (programas, empresas, programas especiales, jornadas)
+$datPr = $mhdt->getAllPro();
+$datEm = $mhdt->getAllEmp();
+$datPe = $mhdt->getAllVal(25);
+$datJo = $mhdt->getAllVal(1);
+
 // Variables por defecto para la vista del horario
 $hora_inicio_defecto = "07:00";
 $hora_fin_defecto = "17:00";
