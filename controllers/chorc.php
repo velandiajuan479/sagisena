@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once("models/mhorc.php");
 require_once("models/mhdt.php");
 require_once("models/memp.php");
