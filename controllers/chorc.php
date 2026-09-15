@@ -85,9 +85,11 @@ if ($opera == "generarHorario" && $idnorad) {
     $horaFinGen = isset($_POST['hora_fin_gen']) ? $_POST['hora_fin_gen'] : '';
     $fechaInicioGen = isset($_POST['fecha_inicio_gen']) ? $_POST['fecha_inicio_gen'] : '';
     $fechaFinGen = isset($_POST['fecha_fin_gen']) ? $_POST['fecha_fin_gen'] : '';
+    // Obtener días seleccionados (por defecto Martes a Viernes si no se envían)
+    $diasSeleccionados = isset($_POST['dias']) ? array_map('intval', $_POST['dias']) : [2,3,4,5];
     
     if (!empty($horaInicioGen) && !empty($horaFinGen) && !empty($fechaInicioGen) && !empty($fechaFinGen)) {
-        if ($mhorc->generarHorarioAutomatico($idnorad, $fechaInicioGen, $fechaFinGen, $horaInicioGen, $horaFinGen)) {
+        if ($mhorc->generarHorarioAutomatico($idnorad, $fechaInicioGen, $fechaFinGen, $horaInicioGen, $horaFinGen, $diasSeleccionados)) {
             echo "<script>alert('Horario generado automáticamente exitosamente'); window.location.href='home.php?pg=".$pg."&idnorad=" . $idnorad . "';</script>";
         } else {
             echo "<script>alert('Error al generar el horario automático'); window.location.href='home.php?pg=".$pg."&idnorad=" . $idnorad . "';</script>";
