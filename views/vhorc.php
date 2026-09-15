@@ -282,14 +282,42 @@ if(!isset($pg)) {
 <div class="card">
     <div class="card-body">
         <h4 class="card-title">
-            Agregar Horario
+            Generar Horario Automático
         </h4>
-        <form id="formAgregarHorario">
+        <p class="text-muted mb-3">Genera automáticamente los horarios de Lunes a Viernes entre las fechas del curso</p>
+        <form id="formGenerarHorario" method="POST" action="home.php?pg=<?=$pg?>&idnorad=<?=$idnorad?>&opera=generarHorario">
             <div class="row">
                 <?php
                 $fechaInicio = isset($datOneHt[0]['feclini']) ? $datOneHt[0]['feclini'] : '';
                 $fechaFin = isset($datOneHt[0]['feclin']) ? $datOneHt[0]['feclin'] : '';
                 ?>
+                <div class="form-group col-md-3 mb-3">
+                    <label for="fecha_inicio_gen">Fecha Inicio</label>
+                    <input type="date" id="fecha_inicio_gen" name="fecha_inicio_gen" class="form-control" 
+                           min="<?php echo $fechaInicio; ?>" max="<?php echo $fechaFin; ?>" value="<?php echo $fechaInicio; ?>" required readonly>
+                </div>
+                <div class="form-group col-md-3 mb-3">
+                    <label for="fecha_fin_gen">Fecha Fin</label>
+                    <input type="date" id="fecha_fin_gen" name="fecha_fin_gen" class="form-control" 
+                           min="<?php echo $fechaInicio; ?>" max="<?php echo $fechaFin; ?>" value="<?php echo $fechaFin; ?>" required readonly>
+                </div>
+                <div class="form-group col-md-2 mb-3">
+                    <label for="hora_inicio_gen">Hora Inicio</label>
+                    <input type="time" id="hora_inicio_gen" name="hora_inicio_gen" class="form-control" step="60" required>
+                </div>
+                <div class="form-group col-md-2 mb-3">
+                    <label for="hora_fin_gen">Hora Fin</label>
+                    <input type="time" id="hora_fin_gen" name="hora_fin_gen" class="form-control" step="60" required>
+                </div>
+                <div class="form-group col-md-2 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success" onclick="return validarHorarioGen()">Generar Horario</button>
+                </div>
+            </div>
+        </form>
+        <hr class="my-4">
+        <h5 class="card-title">Agregar Horario Manual</h5>
+        <form id="formAgregarHorario">
+            <div class="row">
                 <div class="form-group col-md-3 mb-3">
                     <label for="fecha_nueva">Fecha</label>
                     <input type="date" id="fecha_nueva" name="fecha_nueva" class="form-control" 
@@ -304,7 +332,7 @@ if(!isset($pg)) {
                     <input type="time" id="hora_fin_nueva" name="hora_fin_nueva" class="form-control" step="60" required>
                 </div>
                 <div class="form-group col-md-3 mb-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-success" onclick="agregarHorario()">Agregar Horario</button>
+                    <button type="button" class="btn btn-primary" onclick="agregarHorario()">Agregar Horario</button>
                 </div>
             </div>
         </form>
@@ -317,6 +345,12 @@ if(!isset($pg)) {
     <div class="card-body">
     <h4 class="card-title">Horario de la Hoja de Trabajo</h4>
         <br>
+        <!-- Botón para imprimir/descargar horario -->
+        <div class="mb-3">
+            <a href="views/vrphg.php?idare=<?=$idnorad?>&fic=2773071" title="Imprimir Horario" target="_blank" class="btn btn-info">
+                <i class="fa-solid fa-print me-2"></i> Imprimir Horario
+            </a>
+        </div>
 <div class="table-responsive">
     <table class="table table-bordered table-hover" style="width: 100%; max-width: 800px;">
         <thead class="table-success" style="color: black;">
@@ -545,6 +579,23 @@ function agregarHorario() {
     document.getElementById('fecha_nueva').value = '';
     document.getElementById('hora_inicio_nueva').value = '';
     document.getElementById('hora_fin_nueva').value = '';
+}
+
+function validarHorarioGen() {
+    const horaInicio = document.getElementById('hora_inicio_gen').value;
+    const horaFin = document.getElementById('hora_fin_gen').value;
+    
+    if (!horaInicio || !horaFin) {
+        alert('Por favor complete las horas de inicio y fin');
+        return false;
+    }
+    
+    if (horaFin <= horaInicio) {
+        alert('La hora de finalización debe ser mayor a la hora de inicio');
+        return false;
+    }
+    
+    return confirm('¿Está seguro de generar el horario automático? Esto reemplazará todos los horarios existentes.');
 }
 </script>
 
