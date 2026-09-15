@@ -490,14 +490,7 @@ function agregarHorario() {
     const diaSemana = fechaObj.toLocaleDateString('es-ES', { weekday: 'long' });
     const diaEspanol = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
     const fechaFormateada = fecha.split('-').reverse().join('/');
-    const unique_id = fechaObj.toISOString().split('T')[0].replace(/-/g, '');
-    
-    // Verificar si ya existe esta fecha
-    const rowExistente = document.getElementById('row-' + unique_id);
-    if (rowExistente) {
-        alert('Ya existe un horario para esta fecha. Por favor elimine el existente primero.');
-        return;
-    }
+    const unique_id = fechaObj.toISOString().split('T')[0].replace(/-/g, '') + '_' + Date.now();
     
     const tbody = document.getElementById('horario_body');
     
@@ -507,6 +500,20 @@ function agregarHorario() {
         noHayHorariosMsg.parentElement.remove();
     }
     
+    // Buscar si ya existe un encabezado para esta fecha
+    let headerRow = null;
+    const rows = tbody.querySelectorAll('tr');
+    for (let i = 0; i < rows.length; i++) {
+        if (rows[i].classList.contains('table-primary')) {
+            const strongElem = rows[i].querySelector('strong');
+            if (strongElem && strongElem.textContent.includes(diaEspanol) && strongElem.textContent.includes(fechaFormateada)) {
+                headerRow = rows[i];
+                break;
+            }
+        }
+    }
+    
+    // Crear la nueva fila de horario
     const newRow = document.createElement('tr');
     newRow.id = 'row-' + unique_id;
     newRow.innerHTML = `
@@ -522,21 +529,17 @@ function agregarHorario() {
         </td>
     `;
     
-    // Agregar fila después del encabezado de día si existe, o al final
-    let inserted = false;
-    const rows = tbody.querySelectorAll('tr');
-    for (let i = 0; i < rows.length; i++) {
-        if (rows[i].classList.contains('table-primary')) {
-            const fechaRow = rows[i].querySelector('td strong');
-            if (fechaRow) {
-                const fechaTexto = fechaRow.textContent;
-                // Comparar fechas para insertar en orden
-                // Simplificado: insertar al final por ahora
-            }
-        }
+    // Insertar después del encabezado de fecha si existe, o al final
+    if (headerRow) {
+        headerRow.parentNode.insertBefore(newRow, headerRow.nextSibling);
+    } else {
+        // Crear nuevo encabezado de fecha
+        const headerNew = document.createElement('tr');
+        headerNew.classList.add('table-primary');
+        headerNew.innerHTML = '<td colspan="3"><strong>' + diaEspanol + ' ' + fechaFormateada + '</strong></td>';
+        tbody.appendChild(headerNew);
+        tbody.appendChild(newRow);
     }
-    
-    tbody.appendChild(newRow);
     
     // Limpiar formulario
     document.getElementById('fecha_nueva').value = '';

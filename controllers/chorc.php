@@ -62,10 +62,10 @@ if ($opera == "saveHorario" && $idnorad) {
     
     if (!empty($fechas)) {
         $mhorc->setIdnorad($idnorad);
-        // Eliminar horarios existentes
+        // Eliminar horarios existentes solo para esta hoja de trabajo
         $mhorc->deleteHorarios($idnorad);
         
-        // Insertar nuevos horarios
+        // Insertar nuevos horarios (permite múltiples por fecha)
         foreach ($fechas as $index => $fecha) {
             if (!empty($fecha) && !empty($horasInicio[$index]) && !empty($horasFin[$index])) {
                 $mhorc->setIddia($fecha);
@@ -74,7 +74,7 @@ if ($opera == "saveHorario" && $idnorad) {
                 $mhorc->saveHorario();
             }
         }
-        echo "<script>alert('Horario guardado exitosamente'); window.location.href='home.php?pg=2002&idnorad=" . $idnorad . "';</script>";
+        echo "<script>alert('Horario guardado exitosamente'); window.location.href='home.php?pg=".$pg."&idnorad=" . $idnorad . "';</script>";
         exit;
     }
 }

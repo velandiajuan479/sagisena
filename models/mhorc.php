@@ -165,10 +165,11 @@ class Mhorc {
             $modelo = new conexion();
             $conexion = $modelo->get_conexion();
             // Usar fecha_inicio como campo para la fecha (iddia contiene la fecha)
+            // Permitir múltiples horarios por idnorad usando INSERT directo
             $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
             $result = $conexion->prepare($sql);
 
-            $result->bindParam(':idnorad', $this->idnorad);
+            $result->bindParam(':idnorad', $this->idnorad, PDO::PARAM_INT);
             $result->bindParam(':fecha_inicio', $this->iddia); // iddia contiene la fecha
             $result->bindParam(':hinihor', $this->hinihor);
             $result->bindParam(':hfinhor', $this->hfinhor);

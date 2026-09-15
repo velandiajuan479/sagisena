@@ -7,14 +7,14 @@ __pycache__/
 vendor/
 composer.lock
 
-# Environment
-.env
-.env.local
-.env.*
-
 # Logs and temp files
 *.log
 *.tmp
+
+# Environment
+.env
+.env.local
+*.env.*
 
 # Editors
 .vscode/
