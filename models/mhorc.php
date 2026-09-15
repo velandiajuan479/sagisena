@@ -260,10 +260,12 @@ class Mhorc {
 
     // Obtener horarios ocupados por otras fichas en un rango de fechas
     public function getHorariosOcupados() {
-        $sql = "SELECT * FROM horario 
-                WHERE fecha_especifica BETWEEN :feclini AND :feclin 
-                AND idnorad != :idnorad_excluir
-                ORDER BY fecha_especifica";
+        $sql = "SELECT h.fecha_especifica, h.hinihor, h.hfinhor, ht.idfic 
+                FROM horario h
+                INNER JOIN hojatra ht ON h.idnorad = ht.idnorad
+                WHERE h.fecha_especifica BETWEEN :feclini AND :feclin 
+                AND h.idnorad != :idnorad_excluir
+                ORDER BY h.fecha_especifica";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();
         $result = $conexion->prepare($sql);

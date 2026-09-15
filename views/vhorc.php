@@ -354,10 +354,11 @@ require_once("controllers/cemp.php");
                         $estado_text = $esta_ocupado ? 'Bloqueado' : 'Disponible';
                         $estado_class = $esta_ocupado ? 'badge bg-danger' : 'badge bg-success';
                         
-                        // Valores por defecto según el Excel (07:00 - 17:00 = 10 horas)
-                        $hora_inicio_defecto = '07:00';
-                        $hora_fin_defecto = '17:00';
-                        $horas_totales = 10;
+                        // Valores por defecto vacíos - el instructor define las horas
+                        // Todos los días están disponibles para programar
+                        $hora_inicio_defecto = '';
+                        $hora_fin_defecto = '';
+                        $horas_totales = '';
                         ?>
                         <tr id="row-<?php echo $unique_id; ?>" class="<?php echo $row_class; ?>">
                             <td style="padding-left:1em; font-weight:bold;"><?php echo $dia_espanol; ?></td>
@@ -369,7 +370,7 @@ require_once("controllers/cemp.php");
                                 <input type="time" name="hora_inicio[]" id="hini_<?php echo $unique_id; ?>" 
                                        class="form-control" value="<?php echo $hora_inicio_defecto; ?>" 
                                        style="display: inline-block; width: 100%;" 
-                                       data-id="<?php echo $unique_id; ?>" step="60" 
+                                       data-id="<?php echo $unique_id; ?>" step="900" 
                                        <?php echo $disabled_attr; ?>
                                        onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
@@ -377,7 +378,7 @@ require_once("controllers/cemp.php");
                                 <input type="time" name="hora_fin[]" id="hfin_<?php echo $unique_id; ?>" 
                                        class="form-control" value="<?php echo $hora_fin_defecto; ?>" 
                                        style="display: inline-block; width: 100%;" 
-                                       data-id="<?php echo $unique_id; ?>" step="60" 
+                                       data-id="<?php echo $unique_id; ?>" step="900" 
                                        <?php echo $disabled_attr; ?>
                                        onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
@@ -425,7 +426,8 @@ function calcularHoras(id) {
         if(fin > inicio) {
             var diffMs = fin - inicio;
             var diffHrs = diffMs / (1000 * 60 * 60);
-            document.getElementById('htot_' + id).value = diffHrs.toFixed(0);
+            // Redondear a entero más cercano para horas completas
+            document.getElementById('htot_' + id).value = Math.round(diffHrs);
         } else {
             document.getElementById('htot_' + id).value = '0';
         }
@@ -433,13 +435,18 @@ function calcularHoras(id) {
 }
 
 function guardar() {
-    // Validar que todos los campos estén completos
+    // Validar que todos los campos estén completos solo para días disponibles con horas
     var fechas = document.querySelectorAll('input[name="fecha_especifica[]"]');
     var horasInicio = document.querySelectorAll('input[name="hora_inicio[]"]:not([disabled])');
     var horasFin = document.querySelectorAll('input[name="hora_fin[]"]:not([disabled])');
     
     for(var i = 0; i < horasInicio.length; i++) {
-        if(!horasInicio[i].value || !horasFin[i].value) {
+        // Solo validar si el campo tiene valor (días programados)
+        if(horasInicio[i].value && !horasFin[i].value) {
+            alert('Por favor complete todas las horas de inicio y fin para los días disponibles.');
+            return false;
+        }
+        if(!horasInicio[i].value && horasFin[i].value) {
             alert('Por favor complete todas las horas de inicio y fin para los días disponibles.');
             return false;
         }
@@ -451,7 +458,8 @@ function guardar() {
         var hiniInput = document.getElementById('hini_' + fechas[i].value.replace(/-/g, ''));
         var hfinInput = document.getElementById('hfin_' + fechas[i].value.replace(/-/g, ''));
         
-        if(hiniInput && !hiniInput.disabled) {
+        // Solo guardar si tiene horas (días programados) y no está deshabilitado
+        if(hiniInput && !hiniInput.disabled && hiniInput.value && hfinInput.value) {
             datos.push({
                 fecha: fechas[i].value,
                 hora_inicio: hiniInput.value + ':00',
