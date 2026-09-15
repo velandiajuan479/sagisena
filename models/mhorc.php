@@ -164,11 +164,12 @@ class Mhorc {
         try {
             $modelo = new conexion();
             $conexion = $modelo->get_conexion();
-            $sql = "INSERT INTO horario (idnorad, iddia, hinihor, hfinhor) VALUES (:idnorad, :iddia, :hinihor, :hfinhor)";
+            // Usar fecha_inicio como campo para la fecha (iddia contiene la fecha)
+            $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
             $result = $conexion->prepare($sql);
 
             $result->bindParam(':idnorad', $this->idnorad);
-            $result->bindParam(':iddia', $this->iddia);
+            $result->bindParam(':fecha_inicio', $this->iddia); // iddia contiene la fecha
             $result->bindParam(':hinihor', $this->hinihor);
             $result->bindParam(':hfinhor', $this->hfinhor);
 
@@ -194,12 +195,12 @@ class Mhorc {
 
     // Sección de Horarios
     public function getHorario() {
-        $sql = "SELECT * FROM horarios WHERE id=:iddia and hinihor=:hinihor and hfinhor=:hfinhor";
+        $sql = "SELECT * FROM horario WHERE fecha_inicio=:fecha_inicio and hinihor=:hinihor and hfinhor=:hfinhor";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();
         $result = $conexion->prepare($sql);
-        $iddia = $this->getIddia();
-        $result->bindParam(':iddia', $iddia);
+        $fecha_inicio = $this->getIddia();
+        $result->bindParam(':fecha_inicio', $fecha_inicio);
         $hinihor = $this->getHinihor();
         $result->bindParam(':hinihor', $hinihor);
         $hfinhor = $this->getHfinhor();
@@ -241,7 +242,7 @@ class Mhorc {
     }
 
     public function getAll() {
-        $sql = "SELECT * FROM horario WHERE idnorad=:idnorad";
+        $sql = "SELECT idhor, idnorad, fecha_inicio, hinihor, hfinhor FROM horario WHERE idnorad=:idnorad ORDER BY fecha_inicio, hinihor";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();    
         $result = $conexion->prepare($sql);

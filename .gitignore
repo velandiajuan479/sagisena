@@ -1,5 +1,5 @@
 ```
-# Compiled and binary files
+# Compiled and build artifacts
 *.pyc
 __pycache__/
 
@@ -7,14 +7,14 @@ __pycache__/
 vendor/
 composer.lock
 
-# Logs and temp files
-*.log
-*.tmp
-
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
+
+# Logs and temp files
+*.log
+*.tmp
 
 # Editors
 .vscode/

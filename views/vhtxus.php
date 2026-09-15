@@ -8,19 +8,19 @@ $instructores = $mhtxu->getAllIns();
 <div class="modal fade" id="AgreUsuIns" tabindex="-1" aria-labelledby="AgreUsuInsLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <!-- Aquí va el formulario original, sin cambios -->
-      <form action="home.php?pg=<?=$pg;?>" method="POST">
+      <form action="home.php?pg=<?=$pg;?>&idnorad=<?=$datOneHt[0]['idnorad'] ?? ''?>" method="POST">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="AgreUsuInsLabel">Agregar Nuevo Instructor</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <select class="form-control form-select" name="idinstructor">
+          <select class="form-control form-select" name="idinstructor" required>
+              <option value="">Seleccione un instructor...</option>
               <?php foreach($instructores as $inst): ?>
                   <option value="<?=$inst['idusu']?>"><?=$inst['nomusu']?></option>
               <?php endforeach; ?>
           </select>
-          <input type="hidden" name="idnorad" value="<?=$datOneHt[0]['idnorad'];?>
+          <input type="hidden" name="idnorad" value="<?=$datOneHt[0]['idnorad'] ?? ''?>">
           <input type="hidden" name="opera" value="AgrIns">
         </div>
         <div class="modal-footer">
