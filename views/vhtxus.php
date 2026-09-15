@@ -1,7 +1,35 @@
 <?php
 require_once 'models/mhtxu.php';
+require_once 'models/conexion.php';
 $mhtxu = new Mhtxu();
-$instructores = $mhtxu->getAllIns();
+
+// Obtener todos los instructores disponibles (perfil 7)
+$instructoresDisponibles = $mhtxu->getAllIns();
+
+// Obtener instructores ya asignados a esta hoja de trabajo
+$instructoresAsignadosIds = [];
+if(!empty($datOneHt[0]['idnorad'])) {
+    try {
+        $sql = "SELECT idusu FROM hdtxusu WHERE idnorad = :idnorad";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':idnorad', $datOneHt[0]['idnorad'], PDO::PARAM_INT);
+        $stmt->execute();
+        $asignados = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $instructoresAsignadosIds = $asignados ? $asignados : [];
+    } catch (Exception $e) {
+        $instructoresAsignadosIds = [];
+    }
+}
+
+// Filtrar instructores: solo mostrar los que NO están asignados
+$instructores = [];
+foreach($instructoresDisponibles as $inst) {
+    if(!in_array($inst['idusu'], $instructoresAsignadosIds)) {
+        $instructores[] = $inst;
+    }
+}
 ?>
 
 <!-- Modal para agregar instructor -->
