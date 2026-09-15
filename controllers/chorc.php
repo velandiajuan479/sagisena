@@ -121,10 +121,6 @@ if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
         $datos_json = json_decode($_POST['datos'], true);
         $idnorad_save = $_POST['idnorad'];
         
-        // Obtener el ID del usuario actual (instructor) desde la sesión
-        session_start();
-        $idusu_actual = isset($_SESSION['idusu']) ? $_SESSION['idusu'] : 1;
-        
         if(is_array($datos_json)) {
             $exito = true;
             foreach($datos_json as $dato) {
@@ -146,7 +142,6 @@ if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
                         $mhorc_ins->setHinihor($hora_inicio);
                         $mhorc_ins->setHfinhor($hora_fin);
                         $mhorc_ins->setIdnorad($idnorad_save);
-                        $mhorc_ins->setIdusu($idusu_actual);
                         $mhorc_ins->saveConFecha();
                     } else {
                         // Actualizar horario existente
@@ -156,7 +151,6 @@ if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
                         $mhorc_upd->setHinihor($hora_inicio);
                         $mhorc_upd->setHfinhor($hora_fin);
                         $mhorc_upd->setIdnorad($idnorad_save);
-                        $mhorc_upd->setIdusu($idusu_actual);
                         $mhorc_upd->editConFecha();
                     }
                 }

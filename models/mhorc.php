@@ -22,7 +22,6 @@ class Mhorc {
     private $fecha_especifica;
     private $feclini;
     private $feclin;
-    private $idusu;
 
     // Getters
     
@@ -58,10 +57,6 @@ class Mhorc {
         return $this->feclin;
     }
 
-    public function getIdusu() {
-        return $this->idusu;
-    }
-
 
     // Setters
 
@@ -95,10 +90,6 @@ class Mhorc {
 
     public function setFeclin($feclin) {
         $this->feclin = $feclin;
-    }
-
-    public function setIdusu($idusu) {
-        $this->idusu = $idusu;
     }
 
 
@@ -229,7 +220,7 @@ class Mhorc {
             $hinihor = $this->getHinihor();
             $hfinhor = $this->getHfinhor();
             $iddia = 1044; // Default para lunes (ajustar según corresponda)
-            $idusu = $this->getIdusu() ? $this->getIdusu() : 1; // Usuario actual (instructor)
+            $idusu = 1; // Usuario actual (debería obtenerse de la sesión)
 
             $result->bindParam(':idnorad', $idnorad);
             $result->bindParam(':fecha_especifica', $fecha_especifica);
@@ -246,7 +237,7 @@ class Mhorc {
 
     // Editar horario con fecha específica
     public function editConFecha() {
-        $sql = "UPDATE horario SET fecha_especifica=:fecha_especifica, hinihor=:hinihor, hfinhor=:hfinhor, idnorad=:idnorad, idusu=:idusu
+        $sql = "UPDATE horario SET fecha_especifica=:fecha_especifica, hinihor=:hinihor, hfinhor=:hfinhor, idnorad=:idnorad 
                 WHERE idhor=:idhor";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();
@@ -257,24 +248,21 @@ class Mhorc {
         $hinihor = $this->getHinihor();
         $hfinhor = $this->getHfinhor();
         $idnorad = $this->getIdnorad();
-        $idusu = $this->getIdusu() ? $this->getIdusu() : 1; // Usuario actual (instructor)
         
         $result->bindParam(':idhor', $idhor);
         $result->bindParam(':fecha_especifica', $fecha_especifica);
         $result->bindParam(':hinihor', $hinihor);
         $result->bindParam(':hfinhor', $hfinhor);
         $result->bindParam(':idnorad', $idnorad);
-        $result->bindParam(':idusu', $idusu);
         
         $result->execute();
     }
 
     // Obtener horarios ocupados por otras fichas en un rango de fechas
     public function getHorariosOcupados() {
-        $sql = "SELECT h.fecha_especifica, h.hinihor, h.hfinhor, ht.idfic, h.idusu, u.nomusu as nombre_instructor
+        $sql = "SELECT h.fecha_especifica, h.hinihor, h.hfinhor, ht.idfic 
                 FROM horario h
                 INNER JOIN hojatra ht ON h.idnorad = ht.idnorad
-                LEFT JOIN usuario u ON h.idusu = u.idusu
                 WHERE h.fecha_especifica BETWEEN :feclini AND :feclin 
                 AND h.idnorad != :idnorad_excluir
                 ORDER BY h.fecha_especifica";

@@ -326,9 +326,7 @@ require_once("controllers/cemp.php");
                             $horarios_ocupados[$fecha_hor] = [
                                 'hinihor' => isset($hor['hinihor']) ? $hor['hinihor'] : null,
                                 'hfinhor' => isset($hor['hfinhor']) ? $hor['hfinhor'] : null,
-                                'idfic' => isset($hor['idfic']) ? $hor['idfic'] : null,
-                                'idusu' => isset($hor['idusu']) ? $hor['idusu'] : null,
-                                'nombre_instructor' => isset($hor['nombre_instructor']) ? $hor['nombre_instructor'] : null
+                                'idfic' => isset($hor['idfic']) ? $hor['idfic'] : null
                             ];
                         }
                     }
@@ -345,13 +343,9 @@ require_once("controllers/cemp.php");
                         // Verificar si el día está ocupado por otra ficha
                         $esta_ocupado = false;
                         $ficha_ocupante = null;
-                        $instructor_ocupante = null;
-                        $nombre_instructor_ocupante = null;
                         if(isset($horarios_ocupados[$fecha_sql])) {
                             $esta_ocupado = true;
                             $ficha_ocupante = $horarios_ocupados[$fecha_sql]['idfic'];
-                            $instructor_ocupante = $horarios_ocupados[$fecha_sql]['idusu'];
-                            $nombre_instructor_ocupante = $horarios_ocupados[$fecha_sql]['nombre_instructor'];
                         }
                         
                         // Determinar clases y atributos según estado
@@ -399,11 +393,6 @@ require_once("controllers/cemp.php");
                                 <span class="<?php echo $estado_class; ?>"><?php echo $estado_text; ?></span>
                                 <?php if($esta_ocupado): ?>
                                     <br><small class="text-muted">Ficha: <?php echo htmlspecialchars($ficha_ocupante); ?></small>
-                                    <?php if($nombre_instructor_ocupante): ?>
-                                        <br><small class="text-muted">Instructor: <?php echo htmlspecialchars($nombre_instructor_ocupante); ?></small>
-                                    <?php elseif($instructor_ocupante): ?>
-                                        <br><small class="text-muted">Instructor ID: <?php echo htmlspecialchars($instructor_ocupante); ?></small>
-                                    <?php endif; ?>
                                 <?php endif; ?>
                             </td>
                         </tr>
