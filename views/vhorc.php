@@ -326,10 +326,38 @@ require_once("controllers/cemp.php");
                                 <input type="hidden" name="fecha[]" value="<?php echo $fecha->format('Y-m-d'); ?>">
                             </td>
                             <td>
-                                <input type="time" name="hora_inicio[]" class="form-control" value="" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                <input type="time" name="hora_inicio[]" id="hini_<?php echo $unique_id; ?>" 
+                                       class="form-control" value="<?php echo $hora_inicio_defecto; ?>" 
+                                       style="display: inline-block; width: 100%;" 
+                                       data-id="<?php echo $unique_id; ?>" step="3600" 
+                                       <?php echo $disabled_attr; ?>
+                                       onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
                             <td>
-                                <input type="time" name="hora_fin[]" class="form-control" value="" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                <input type="time" name="hora_fin[]" id="hfin_<?php echo $unique_id; ?>" 
+                                       class="form-control" value="<?php echo $hora_fin_defecto; ?>" 
+                                       style="display: inline-block; width: 100%;" 
+                                       data-id="<?php echo $unique_id; ?>" step="3600" 
+                                       <?php echo $disabled_attr; ?>
+                                       onchange="calcularHoras('<?php echo $unique_id; ?>')">
+                            </td>
+                            <td>
+                                <input type="text" name="horas_totales[]" id="htot_<?php echo $unique_id; ?>" 
+                                       class="form-control" value="<?php echo $horas_totales; ?>" 
+                                       style="display: inline-block; width: 100%; text-align: center; font-weight: bold;" 
+                                       readonly>
+                                <input type="hidden" name="fecha_especifica[]" value="<?php echo $fecha_sql; ?>">
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="<?php echo $estado_class; ?>"><?php echo $estado_text; ?></span>
+                                <?php if($esta_ocupado): ?>
+                                    <br><small class="text-muted">Ficha: <?php echo htmlspecialchars($ficha_ocupante); ?></small>
+                                    <?php if($nombre_instructor_ocupante): ?>
+                                        <br><small class="text-muted">Instructor: <?php echo htmlspecialchars($nombre_instructor_ocupante); ?></small>
+                                    <?php elseif($instructor_ocupante): ?>
+                                        <br><small class="text-muted">Instructor ID: <?php echo htmlspecialchars($instructor_ocupante); ?></small>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </td>
                             
                         </tr>
@@ -349,7 +377,112 @@ require_once("controllers/cemp.php");
  </div>
  </div>
 
+<script>
+function calcularHoras(id) {
+    var hini = document.getElementById('hini_' + id).value;
+    var hfin = document.getElementById('hfin_' + id).value;
+    
+    if(hini && hfin) {
+        var inicio = new Date('2000-01-01 ' + hini);
+        var fin = new Date('2000-01-01 ' + hfin);
+        
+        if(fin > inicio) {
+            var diffMs = fin - inicio;
+            var diffHrs = diffMs / (1000 * 60 * 60);
+            // Redondear a entero más cercano para horas completas
+            var horasTotales = Math.round(diffHrs);
+            document.getElementById('htot_' + id).value = horasTotales;
+            
+            // Validar que las horas sean solo modificables por el instructor
+            // y que no se puedan ingresar horas parciales
+            if (horasTotales < 1 || horasTotales > 24) {
+                alert('Las horas totales deben estar entre 1 y 24 horas.');
+                document.getElementById('htot_' + id).value = '';
+                document.getElementById('hini_' + id).value = '';
+                document.getElementById('hfin_' + id).value = '';
+            }
+        } else {
+            document.getElementById('htot_' + id).value = '0';
+        }
+    }
+}
 
+function guardar() {
+    // Validar que todos los campos estén completos solo para días disponibles con horas
+    var fechas = document.querySelectorAll('input[name="fecha_especifica[]"]');
+    var horasInicio = document.querySelectorAll('input[name="hora_inicio[]"]:not([disabled])');
+    var horasFin = document.querySelectorAll('input[name="hora_fin[]"]:not([disabled])');
+    
+    for(var i = 0; i < horasInicio.length; i++) {
+        // Solo validar si el campo tiene valor (días programados)
+        if(horasInicio[i].value && !horasFin[i].value) {
+            alert('Por favor complete todas las horas de inicio y fin para los días disponibles.');
+            return false;
+        }
+        if(!horasInicio[i].value && horasFin[i].value) {
+            alert('Por favor complete todas las horas de inicio y fin para los días disponibles.');
+            return false;
+        }
+    }
+    
+    // Recopilar datos
+    var datos = [];
+    for(var i = 0; i < fechas.length; i++) {
+        var hiniInput = document.getElementById('hini_' + fechas[i].value.replace(/-/g, ''));
+        var hfinInput = document.getElementById('hfin_' + fechas[i].value.replace(/-/g, ''));
+        
+        // Solo guardar si tiene horas (días programados) y no está deshabilitado
+        if(hiniInput && !hiniInput.disabled && hiniInput.value && hfinInput.value) {
+            // Formatear horas en formato militar HH:00:00
+            var horaInicioFormat = hiniInput.value + ':00';
+            var horaFinFormat = hfinInput.value + ':00';
+            
+            datos.push({
+                fecha: fechas[i].value,
+                hora_inicio: horaInicioFormat,
+                hora_fin: horaFinFormat,
+                horas_totales: document.getElementById('htot_' + fechas[i].value.replace(/-/g, '')).value
+            });
+        }
+    }
+    
+    // Enviar datos al servidor
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'index.php?ctl=chorc', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    
+    var idnorad = document.querySelector('input[name="idnorad"]').value;
+    var params = 'opera=save_horario&idnorad=' + idnorad + '&' + 
+                 'datos=' + encodeURIComponent(JSON.stringify(datos));
+    
+    xhr.onload = function() {
+        if(xhr.status === 200) {
+            try {
+                var response = JSON.parse(xhr.responseText);
+                if(response.success) {
+                    alert('Horario guardado exitosamente');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            } catch(e) {
+                alert('Error al guardar el horario: ' + xhr.responseText);
+            }
+        } else {
+            alert('Error al guardar el horario. Estado: ' + xhr.status);
+        }
+    };
+    
+    xhr.onerror = function() {
+        alert('Error de conexión al guardar el horario');
+    };
+    
+    xhr.send(params);
+}
+</script>
+
+
+        <!-- Botón para agregar instructor -->
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Agregar Instructor">
           <i class="fa-solid fa-user-plus fa-2x" style="color: #ffffff;"></i>
         </button>

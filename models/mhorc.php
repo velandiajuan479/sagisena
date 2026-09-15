@@ -135,5 +135,72 @@ class Mhorc {
     }
 
 
+            $result->bindParam(':idnorad', $idnorad);
+            $result->bindParam(':fecha_especifica', $fecha_especifica);
+            $result->bindParam(':hinihor', $hinihor);
+            $result->bindParam(':hfinhor', $hfinhor);
+            $result->bindParam(':iddia', $iddia);
+            $result->bindParam(':idusu', $idusu);
+
+            $result->execute();
+        } catch (Exception $e) {
+            ManejoError($e);
+        }
+    }
+
+    // Editar horario con fecha específica
+    public function editConFecha() {
+        $sql = "UPDATE horario SET fecha_especifica=:fecha_especifica, hinihor=:hinihor, hfinhor=:hfinhor, idnorad=:idnorad, idusu=:idusu
+                WHERE idhor=:idhor";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $result = $conexion->prepare($sql);
+        
+        $idhor = $this->getIdhor();
+        $fecha_especifica = $this->getFechaEspecifica();
+        $hinihor = $this->getHinihor();
+        $hfinhor = $this->getHfinhor();
+        $idnorad = $this->getIdnorad();
+        $idusu = $this->getIdusu() ? $this->getIdusu() : 1; // Usuario actual (instructor)
+        
+        $result->bindParam(':idhor', $idhor);
+        $result->bindParam(':fecha_especifica', $fecha_especifica);
+        $result->bindParam(':hinihor', $hinihor);
+        $result->bindParam(':hfinhor', $hfinhor);
+        $result->bindParam(':idnorad', $idnorad);
+        $result->bindParam(':idusu', $idusu);
+        
+        $result->execute();
+    }
+
+    // Obtener horarios ocupados por otras fichas en un rango de fechas
+    public function getHorariosOcupados() {
+        $sql = "SELECT h.fecha_especifica, h.hinihor, h.hfinhor, ht.idfic, h.idusu, u.nomusu as nombre_instructor
+                FROM horario h
+                INNER JOIN hojatra ht ON h.idnorad = ht.idnorad
+                LEFT JOIN usuario u ON h.idusu = u.idusu
+                WHERE h.fecha_especifica BETWEEN :feclini AND :feclin 
+                AND h.idnorad != :idnorad_excluir
+                ORDER BY h.fecha_especifica";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $result = $conexion->prepare($sql);
+        
+        $feclini = $this->getFeclini();
+        $feclin = $this->getFeclin();
+        $idnorad_excluir = $this->getIdnorad();
+        
+        if(empty($idnorad_excluir)) {
+            $idnorad_excluir = 0;
+        }
+        
+        $result->bindParam(':feclini', $feclini);
+        $result->bindParam(':feclin', $feclin);
+        $result->bindParam(':idnorad_excluir', $idnorad_excluir);
+        
+        $result->execute();
+        $res = $result->fetchAll(PDO::FETCH_ASSOC);
+        return $res;
+    }
 
 }
