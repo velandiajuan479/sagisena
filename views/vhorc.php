@@ -314,12 +314,55 @@ require_once("controllers/cemp.php");
                     $dia_ingles = $fecha->format('l');
                     $fechas_por_dia[$dia_ingles][] = clone $fecha;
                 }
+                
+                // Procesar horarios ocupados para crear un mapa de fechas ocupadas
+                $horarios_ocupados_map = [];
+                if(!empty($datHorariosOcupados)) {
+                    foreach($datHorariosOcupados as $ho) {
+                        $fecha_key = date('Ymd', strtotime($ho['fecha_especifica']));
+                        $horarios_ocupados_map[$fecha_key] = $ho;
+                    }
+                }
+                
                 foreach($dias_espanol as $dia_ingles => $dia_espanol) {
                     if (!isset($fechas_por_dia[$dia_ingles])) continue;
                     echo '<tr class="table-primary"><td colspan="3"><strong>'.$dia_espanol.'</strong></td></tr>';
                     foreach($fechas_por_dia[$dia_ingles] as $fecha) {
                         $fecha_formateada = $fecha->format('d/m/Y');
                         $unique_id = $fecha->format('Ymd');
+                        $fecha_sql = $fecha->format('Y-m-d');
+                        
+                        // Verificar si esta fecha está ocupada por otra ficha
+                        $esta_ocupado = isset($horarios_ocupados_map[$unique_id]);
+                        
+                        if($esta_ocupado) {
+                            $ho = $horarios_ocupados_map[$unique_id];
+                            $hora_inicio_defecto = $ho['hinihor'];
+                            $hora_fin_defecto = $ho['hfinhor'];
+                            $disabled_attr = "disabled";
+                            $estado_class = "text-danger fw-bold";
+                            $estado_text = "OCUPADO";
+                            $ficha_ocupante = $ho['idfic'] ?? '';
+                            $nombre_instructor_ocupante = $ho['nombre_instructor'] ?? '';
+                            $instructor_ocupante = $ho['idusu'] ?? '';
+                            
+                            // Calcular horas totales
+                            $inicio_dt = new DateTime('2000-01-01 ' . $hora_inicio_defecto);
+                            $fin_dt = new DateTime('2000-01-01 ' . $hora_fin_defecto);
+                            $diff = $inicio_dt->diff($fin_dt);
+                            $horas_totales = $diff->h + ($diff->i / 60);
+                        } else {
+                            // Valores por defecto para días disponibles
+                            $hora_inicio_defecto = "07:00";
+                            $hora_fin_defecto = "17:00";
+                            $horas_totales = "10";
+                            $disabled_attr = "";
+                            $estado_class = "";
+                            $estado_text = "";
+                            $ficha_ocupante = "";
+                            $nombre_instructor_ocupante = "";
+                            $instructor_ocupante = "";
+                        }
                         ?>
                         <tr id="row-<?php echo $unique_id; ?>">
                             <td style="padding-left:2em;"> <?php echo $fecha_formateada; ?>
