@@ -1,58 +1,31 @@
-```php
+```
 # Compiled and build artifacts
 *.pyc
 __pycache__/
 *.o
 *.obj
-*.class
-*.dll
-*.so
-*.a
-*.exe
-*.out
-
-# Dependencies
-node_modules/
-venv/
-.venv/
-.env
-.env.local
-.env.*
-
-# Build directories
 dist/
 build/
-target/
-.coverage
-coverage/
-htmlcov/
+
+# Dependencies
+.venv/
+venv/
+node_modules/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
-*.swo
+
+# Environment
+.env
+.env.local
+.env.*
 
 # Editors
 .vscode/
 .idea/
-*.DS_Store
-Thumbs.db
 
-# Python specific
-*.pyc
-__pycache__/
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg-info/
-.eggs/
-
-# Cache directories
-.mypy_cache/
-.pytest_cache/
-.gradle/
-.julia/
-zig-cache/
+# Original rules preserved
+*.log
 ```
