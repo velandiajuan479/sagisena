@@ -176,5 +176,11 @@ if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
     $datHorariosOcupados = $mhorc->getHorariosOcupados();
 }
 
+// Obtener instructores asignados a la hoja de trabajo
+$instructoresAsignados = [];
+if(!empty($idnorad)) {
+    $mhdt->setIdnorad($idnorad);
+    $instructoresAsignados = $mhdt->getInstructoresPorHoja();
+}
 
 ?>
