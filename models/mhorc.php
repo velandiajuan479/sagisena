@@ -265,4 +265,49 @@ class Mhorc {
         $res = $result->fetchAll(PDO::FETCH_ASSOC);
         return $res;
     }
+
+    // Generar horarios automáticos entre fecha inicial y final (Lunes a Viernes)
+    public function generarHorarioAutomatico($idnorad, $fechaInicio, $fechaFin, $horaInicio, $horaFin) {
+        try {
+            $modelo = new conexion();
+            $conexion = $modelo->get_conexion();
+            
+            // Eliminar horarios existentes para esta hoja de trabajo
+            $deleteSql = "DELETE FROM horario WHERE idnorad = :idnorad";
+            $deleteStmt = $conexion->prepare($deleteSql);
+            $deleteStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+            $deleteStmt->execute();
+            
+            // Iterar por cada día entre las fechas
+            $fechaActual = new DateTime($fechaInicio);
+            $fechaFinal = new DateTime($fechaFin);
+            
+            while ($fechaActual <= $fechaFinal) {
+                // Obtener día de la semana (0 = Domingo, 6 = Sábado)
+                $diaSemana = $fechaActual->format('N'); // 1 = Lunes, 7 = Domingo
+                
+                // Solo guardar de Lunes (1) a Viernes (5)
+                if ($diaSemana >= 1 && $diaSemana <= 5) {
+                    $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) 
+                            VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
+                    $stmt = $conexion->prepare($sql);
+                    $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+                    $stmt->bindParam(':fecha_inicio', $fechaActual->format('Y-m-d'));
+                    $stmt->bindParam(':hinihor', $horaInicio);
+                    $stmt->bindParam(':hfinhor', $horaFin);
+                    $stmt->execute();
+                }
+                
+                // Avanzar un día
+                $fechaActual->modify('+1 day');
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            if(function_exists('ManejoError')) {
+                ManejoError($e);
+            }
+            return false;
+        }
+    }
 }

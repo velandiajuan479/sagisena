@@ -54,7 +54,7 @@ if ($opera == "save" && $idnorad) {
     exit;
 }
 
-// Operación: Guardar Horario
+// Operación: Guardar Horario (desde tabla editable)
 if ($opera == "saveHorario" && $idnorad) {
     $fechas = isset($_POST['fecha']) ? $_POST['fecha'] : [];
     $horasInicio = isset($_POST['hora_inicio']) ? $_POST['hora_inicio'] : [];
@@ -75,6 +75,23 @@ if ($opera == "saveHorario" && $idnorad) {
             }
         }
         echo "<script>alert('Horario guardado exitosamente'); window.location.href='home.php?pg=".$pg."&idnorad=" . $idnorad . "';</script>";
+        exit;
+    }
+}
+
+// Operación: Generar Horario Automático
+if ($opera == "generarHorario" && $idnorad) {
+    $horaInicioGen = isset($_POST['hora_inicio_gen']) ? $_POST['hora_inicio_gen'] : '';
+    $horaFinGen = isset($_POST['hora_fin_gen']) ? $_POST['hora_fin_gen'] : '';
+    $fechaInicioGen = isset($_POST['fecha_inicio_gen']) ? $_POST['fecha_inicio_gen'] : '';
+    $fechaFinGen = isset($_POST['fecha_fin_gen']) ? $_POST['fecha_fin_gen'] : '';
+    
+    if (!empty($horaInicioGen) && !empty($horaFinGen) && !empty($fechaInicioGen) && !empty($fechaFinGen)) {
+        if ($mhorc->generarHorarioAutomatico($idnorad, $fechaInicioGen, $fechaFinGen, $horaInicioGen, $horaFinGen)) {
+            echo "<script>alert('Horario generado automáticamente exitosamente'); window.location.href='home.php?pg=".$pg."&idnorad=" . $idnorad . "';</script>";
+        } else {
+            echo "<script>alert('Error al generar el horario automático'); window.location.href='home.php?pg=".$pg."&idnorad=" . $idnorad . "';</script>";
+        }
         exit;
     }
 }
