@@ -286,6 +286,10 @@ class Mhorc {
         $feclin = $this->getFeclin();
         $idnorad_excluir = $this->getIdnorad();
         
+        if(empty($idnorad_excluir)) {
+            $idnorad_excluir = 0;
+        }
+        
         $result->bindParam(':feclini', $feclini);
         $result->bindParam(':feclin', $feclin);
         $result->bindParam(':idnorad_excluir', $idnorad_excluir);

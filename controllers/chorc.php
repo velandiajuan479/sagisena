@@ -133,6 +133,35 @@ if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
                 $hora_fin = isset($dato['hora_fin']) ? $dato['hora_fin'] : null;
                 
                 if($fecha && $hora_inicio && $hora_fin) {
+                    // Validar que las horas estén en formato militar (HH:MM:SS)
+                    // y que sean horas completas (sin minutos diferentes de 00)
+                    $inicio_parts = explode(':', $hora_inicio);
+                    $fin_parts = explode(':', $hora_fin);
+                    
+                    // Verificar formato correcto
+                    if(count($inicio_parts) != 3 || count($fin_parts) != 3) {
+                        echo json_encode(['success' => false, 'message' => 'Formato de hora inválido. Use formato militar HH:MM:SS']);
+                        exit;
+                    }
+                    
+                    // Verificar que los minutos sean 00 (horas completas)
+                    if($inicio_parts[1] != '00' || $fin_parts[1] != '00') {
+                        echo json_encode(['success' => false, 'message' => 'Las horas deben ser completas (ej: 07:00:00, 17:00:00)']);
+                        exit;
+                    }
+                    
+                    // Calcular horas totales
+                    $inicio_dt = new DateTime('2000-01-01 ' . $hora_inicio);
+                    $fin_dt = new DateTime('2000-01-01 ' . $hora_fin);
+                    $diff = $inicio_dt->diff($fin_dt);
+                    $horas_totales = $diff->h + ($diff->i / 60);
+                    
+                    // Validar que las horas totales sean enteras y estén entre 1 y 24
+                    if($horas_totales < 1 || $horas_totales > 24 || $horas_totales != floor($horas_totales)) {
+                        echo json_encode(['success' => false, 'message' => 'Las horas totales deben ser enteras entre 1 y 24']);
+                        exit;
+                    }
+                    
                     // Verificar si ya existe un horario para esta fecha
                     $mhorc_check = new Mhorc();
                     $mhorc_check->setFechaEspecifica($fecha);
@@ -178,7 +207,9 @@ if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
 if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
     $mhorc->setFeclini($datOneHt[0]['feclini']);
     $mhorc->setFeclin($datOneHt[0]['feclin']);
-    $mhorc->setIdnorad($idnorad); // Excluir los horarios de esta ficha
+    // Excluir los horarios de esta ficha, si no hay idnorad usar 0
+    $idnorad_excluir = !empty($idnorad) ? $idnorad : 0;
+    $mhorc->setIdnorad($idnorad_excluir);
     $datHorariosOcupados = $mhorc->getHorariosOcupados();
 }
 

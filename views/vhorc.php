@@ -376,7 +376,7 @@ require_once("controllers/cemp.php");
                                 <input type="time" name="hora_inicio[]" id="hini_<?php echo $unique_id; ?>" 
                                        class="form-control" value="<?php echo $hora_inicio_defecto; ?>" 
                                        style="display: inline-block; width: 100%;" 
-                                       data-id="<?php echo $unique_id; ?>" step="900" 
+                                       data-id="<?php echo $unique_id; ?>" step="3600" 
                                        <?php echo $disabled_attr; ?>
                                        onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
@@ -384,7 +384,7 @@ require_once("controllers/cemp.php");
                                 <input type="time" name="hora_fin[]" id="hfin_<?php echo $unique_id; ?>" 
                                        class="form-control" value="<?php echo $hora_fin_defecto; ?>" 
                                        style="display: inline-block; width: 100%;" 
-                                       data-id="<?php echo $unique_id; ?>" step="900" 
+                                       data-id="<?php echo $unique_id; ?>" step="3600" 
                                        <?php echo $disabled_attr; ?>
                                        onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
@@ -438,7 +438,17 @@ function calcularHoras(id) {
             var diffMs = fin - inicio;
             var diffHrs = diffMs / (1000 * 60 * 60);
             // Redondear a entero más cercano para horas completas
-            document.getElementById('htot_' + id).value = Math.round(diffHrs);
+            var horasTotales = Math.round(diffHrs);
+            document.getElementById('htot_' + id).value = horasTotales;
+            
+            // Validar que las horas sean solo modificables por el instructor
+            // y que no se puedan ingresar horas parciales
+            if (horasTotales < 1 || horasTotales > 24) {
+                alert('Las horas totales deben estar entre 1 y 24 horas.');
+                document.getElementById('htot_' + id).value = '';
+                document.getElementById('hini_' + id).value = '';
+                document.getElementById('hfin_' + id).value = '';
+            }
         } else {
             document.getElementById('htot_' + id).value = '0';
         }
@@ -471,10 +481,14 @@ function guardar() {
         
         // Solo guardar si tiene horas (días programados) y no está deshabilitado
         if(hiniInput && !hiniInput.disabled && hiniInput.value && hfinInput.value) {
+            // Formatear horas en formato militar HH:00:00
+            var horaInicioFormat = hiniInput.value + ':00';
+            var horaFinFormat = hfinInput.value + ':00';
+            
             datos.push({
                 fecha: fechas[i].value,
-                hora_inicio: hiniInput.value + ':00',
-                hora_fin: hfinInput.value + ':00',
+                hora_inicio: horaInicioFormat,
+                hora_fin: horaFinFormat,
                 horas_totales: document.getElementById('htot_' + fechas[i].value.replace(/-/g, '')).value
             });
         }
