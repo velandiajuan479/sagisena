@@ -14,116 +14,140 @@ require_once("controllers/cemp.php");
                 <?php } ?>
                 <div class="form-group col-md-6">
                     <label>Programa</label>
-                    <input type="text" class="form-control" value="<?php 
-                        if($datOne && !empty($datOne[0]['codpro'])) {
-                            foreach($datPr as $dt) {
-                                if($dt['codpro'] == $datOne[0]['codpro']) {
-                                    echo htmlspecialchars($dt['codpro']." - ".$dt['nompro']);
-                                    break;
-                                }
+                    <?php 
+                    $nompro_mostrar = '';
+                    if($datOne && !empty($datOne[0]['codpro']) && !empty($datPr)) {
+                        foreach($datPr as $dt) {
+                            if($dt['codpro'] == $datOne[0]['codpro']) {
+                                $nompro_mostrar = htmlspecialchars($dt['codpro']." - ".$dt['nompro']);
+                                break;
                             }
                         }
-                    ?>" readonly>
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$nompro_mostrar?>" readonly>
                     <input type="hidden" name="codpro" value="<?php if($datOne && $datOne[0]['codpro']) echo $datOne[0]['codpro']; ?>">
                 </div>
                 <div class="form-group col-md-6">
                     <label>Empresa</label>
-                    <input type="text" class="form-control" value="<?php 
-                        if($datOne && !empty($datOne[0]['idemp'])) {
-                            foreach($datEm as $dt) {
-                                if($dt['idemp'] == $datOne[0]['idemp']) {
-                                    echo htmlspecialchars($dt['nomemp']);
-                                    break;
-                                }
+                    <?php 
+                    $nomemp_mostrar = '';
+                    if($datOne && !empty($datOne[0]['idemp']) && !empty($datEm)) {
+                        foreach($datEm as $dt) {
+                            if($dt['idemp'] == $datOne[0]['idemp']) {
+                                $nomemp_mostrar = htmlspecialchars($dt['nomemp']);
+                                break;
                             }
                         }
-                    ?>" readonly>
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$nomemp_mostrar?>" readonly>
                     <input type="hidden" name="idemp" value="<?php if($datOne && $datOne[0]['idemp']) echo $datOne[0]['idemp']; ?>">
                 </div>
                 <div class="form-group col-md-6">
                     <label>Programa Especial</label>
-                    <input type="text" class="form-control" value="<?php 
-                        if($datOne && !empty($datOne[0]['codproesp'])) {
-                            foreach($datPe as $dt) {
-                                if($dt['idval'] == $datOne[0]['codproesp']) {
-                                    echo htmlspecialchars($dt['nomval']);
-                                    break;
-                                }
+                    <?php 
+                    $nomval_mostrar = '';
+                    if($datOne && !empty($datOne[0]['codproesp']) && !empty($datPe)) {
+                        foreach($datPe as $dt) {
+                            if($dt['idval'] == $datOne[0]['codproesp']) {
+                                $nomval_mostrar = htmlspecialchars($dt['nomval']);
+                                break;
                             }
                         }
-                    ?>" readonly>
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$nomval_mostrar?>" readonly>
                     <input type="hidden" name="codproesp" value="<?php if($datOne && $datOne[0]['codproesp']) echo $datOne[0]['codproesp']; ?>">
                 </div>
 
                 <div class="form-group col-md-3">
                     <label>Fecha Inicial</label>
-                    <input type="text" class="form-control" value="<?php 
-                        if(!empty($datOneHt[0]['feclini'])) {
-                            echo $datOneHt[0]['feclini'];
-                        } elseif($datOne && $datOne[0]['feclini']) { 
-                            echo $datOne[0]['feclini']; 
-                        }
-                    ?>" readonly>
-                    <input type="hidden" name="feclini" value="<?php 
-                        if(!empty($datOneHt[0]['feclini'])) {
-                            echo $datOneHt[0]['feclini'];
-                        } elseif($datOne && $datOne[0]['feclini']) { 
-                            echo $datOne[0]['feclini']; 
-                        }
-                    ?>">
+                    <?php 
+                    $feclini_mostrar = '';
+                    if(!empty($datOneHt[0]['feclini'])) {
+                        $feclini_mostrar = $datOneHt[0]['feclini'];
+                    } elseif($datOne && !empty($datOne[0]['feclini'])) { 
+                        $feclini_mostrar = $datOne[0]['feclini']; 
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$feclini_mostrar?>" readonly>
+                    <input type="hidden" name="feclini" value="<?=$feclini_mostrar?>">
                 </div>
                 <div class="form-group col-md-3">
                     <label>Fecha Final</label>
-                    <input type="text" class="form-control" value="<?php 
-                        if(!empty($datOneHt[0]['feclin'])) {
-                            echo $datOneHt[0]['feclin'];
-                        } elseif($datOne && $datOne[0]['feclin']) { 
-                            echo $datOne[0]['feclin']; 
-                        }
-                    ?>" readonly>
-                    <input type="hidden" name="feclin" value="<?php 
-                        if(!empty($datOneHt[0]['feclin'])) {
-                            echo $datOneHt[0]['feclin'];
-                        } elseif($datOne && $datOne[0]['feclin']) { 
-                            echo $datOne[0]['feclin']; 
-                        }
-                    ?>">
+                    <?php 
+                    $feclin_mostrar = '';
+                    if(!empty($datOneHt[0]['feclin'])) {
+                        $feclin_mostrar = $datOneHt[0]['feclin'];
+                    } elseif($datOne && !empty($datOne[0]['feclin'])) { 
+                        $feclin_mostrar = $datOne[0]['feclin']; 
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$feclin_mostrar?>" readonly>
+                    <input type="hidden" name="feclin" value="<?=$feclin_mostrar?>">
                 </div>
                 <div class="form-group col-md-3">
                     <label>Cupo</label>
-                    <input type="text" class="form-control" value="<?php if($datOne && $datOne[0]['cupo']) echo $datOne[0]['cupo']; ?>" readonly>
-                    <input type="hidden" name="cupo" value="<?php if($datOne && $datOne[0]['cupo']) echo $datOne[0]['cupo']; ?>">
+                    <?php 
+                    $cupo_mostrar = '';
+                    if($datOne && !empty($datOne[0]['cupo'])) {
+                        $cupo_mostrar = $datOne[0]['cupo'];
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$cupo_mostrar?>" readonly>
+                    <input type="hidden" name="cupo" value="<?=$cupo_mostrar?>">
                 </div>
 
                 <div class="form-group col-md-3">
                     <label>Jornada</label>
-                    <input type="text" class="form-control" value="<?php 
-                        if($datOne && !empty($datOne[0]['jornada'])) {
-                            foreach($datJo as $dt) {
-                                if($dt['idval'] == $datOne[0]['jornada']) {
-                                    echo htmlspecialchars($dt['nomval']);
-                                    break;
-                                }
+                    <?php 
+                    $nomjor_mostrar = '';
+                    if($datOne && !empty($datOne[0]['jornada']) && !empty($datJo)) {
+                        foreach($datJo as $dt) {
+                            if($dt['idval'] == $datOne[0]['jornada']) {
+                                $nomjor_mostrar = htmlspecialchars($dt['nomval']);
+                                break;
                             }
                         }
-                    ?>" readonly>
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$nomjor_mostrar?>" readonly>
                     <input type="hidden" name="jornada" value="<?php if($datOne && $datOne[0]['jornada']) echo $datOne[0]['jornada']; ?>">
                 </div>
                                                 
                 <div class="form-group col-md-3">
                     <label>Cod. Ficha</label>
-                    <input type="text" class="form-control" value="<?php if($datOne && $datOne[0]['idfic']) echo $datOne[0]['idfic']; ?>" readonly>
-                    <input type="hidden" name="idfic" value="<?php if($datOne && $datOne[0]['idfic']) echo $datOne[0]['idfic']; ?>">
+                    <?php 
+                    $idfic_mostrar = '';
+                    if($datOne && !empty($datOne[0]['idfic'])) {
+                        $idfic_mostrar = $datOne[0]['idfic'];
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$idfic_mostrar?>" readonly>
+                    <input type="hidden" name="idfic" value="<?=$idfic_mostrar?>">
                 </div>
                 <div class="form-group col-md-3">
                     <label>Cod. Solicitud Empresa</label>
-                    <input type="text" class="form-control" value="<?php if($datOne && $datOne[0]['codslem']) echo $datOne[0]['codslem']; ?>" readonly>
-                    <input type="hidden" name="codslem" value="<?php if($datOne && $datOne[0]['codslem']) echo $datOne[0]['codslem']; ?>">
+                    <?php 
+                    $codslem_mostrar = '';
+                    if($datOne && !empty($datOne[0]['codslem'])) {
+                        $codslem_mostrar = $datOne[0]['codslem'];
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$codslem_mostrar?>" readonly>
+                    <input type="hidden" name="codslem" value="<?=$codslem_mostrar?>">
                 </div>
                 <div class="form-group col-md-6">
                     <label>Convenio</label>
-                    <input type="text" class="form-control" value="<?php if($datOne && $datOne[0]['convht']) echo $datOne[0]['convht']; ?>" readonly>
-                    <input type="hidden" name="convht" value="<?php if($datOne && $datOne[0]['convht']) echo $datOne[0]['convht']; ?>">
+                    <?php 
+                    $convht_mostrar = '';
+                    if($datOne && !empty($datOne[0]['convht'])) {
+                        $convht_mostrar = $datOne[0]['convht'];
+                    }
+                    ?>
+                    <input type="text" class="form-control" value="<?=$convht_mostrar?>" readonly>
+                    <input type="hidden" name="convht" value="<?=$convht_mostrar?>">
                 </div>
         </form>
     </div>
