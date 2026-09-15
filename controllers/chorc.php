@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once("models/mhorc.php");
 require_once("models/mhdt.php");
 require_once("models/memp.php");
@@ -114,14 +115,13 @@ if(empty($idnorad) && !empty($_POST['idemp']) && empty($datOneEmp)) {
     $datOneEmp = $memp->getOne();
 }
 
-// Manejar guardado de horario
+// Manejar guardado de horario (DEBE IR DESPUÉS de inicializar variables pero ANTES del HTML)
 if(isset($_POST['opera']) && $_POST['opera'] == 'save_horario') {
     if(isset($_POST['datos']) && !empty($_POST['idnorad'])) {
         $datos_json = json_decode($_POST['datos'], true);
         $idnorad_save = $_POST['idnorad'];
         
         // Obtener el ID del usuario actual (instructor) desde la sesión
-        session_start();
         $idusu_actual = isset($_SESSION['idusu']) ? $_SESSION['idusu'] : 1;
         
         if(is_array($datos_json)) {
