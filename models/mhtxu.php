@@ -22,7 +22,7 @@ class Mhtxu {
     // Método para asignar un instructor a una hoja de trabajo
     public function asignarInstructorHoja($idnorad, $idusu) {
         try {
-            $sql = "INSERT INTO hoja_x_usuario (idnorad, idusu) VALUES (:idnorad, :idusu)";
+            $sql = "INSERT INTO hdtxusu (idnorad, idusu) VALUES (:idnorad, :idusu)";
             $modelo = new conexion();
             $conexion = $modelo->get_conexion();
             $stmt = $conexion->prepare($sql);
