@@ -185,34 +185,32 @@ require_once("controllers/cemp.php");
 <div class="card">
     <div class="card-body">
     <?php 
-    // Verificar si hay datos de empresa para mostrar
-    if(!empty($datOneEmp) && is_array($datOneEmp) && !empty($datOneEmp[0])): 
-        $empresa = $datOneEmp[0];
+    // Verificar si hay datos del programa para mostrar
+    if(!empty($dtpro) && is_array($dtpro) && !empty($dtpro[0])): 
+        $programa = $dtpro[0];
     ?>
         <h4 class="card-title">
             Programa
         </h4>
         <div class="row">
-            <?php if(isset($empresa['numdocemp'])): ?>
+            <?php if(isset($programa['nompro'])): ?>
             <div class="col-md-8">
                 <div class="fw-bold">Nombre</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['numdocemp'])?></div>
+                <div class="form-control d-inline-block"><?=htmlspecialchars($programa['nompro'])?></div>
             </div>
             <?php endif; ?>
-            <?php if(isset($empresa['nomemp'])): ?>
+            <?php if(isset($programa['verpro'])): ?>
             <div class="col-md-2">
                 <div class="fw-bold">Versión</div>
-                <div class="form-control d-inline-block"><?=htmlspecialchars($empresa['nomemp'])?></div>
+                <div class="form-control d-inline-block"><?=htmlspecialchars($programa['verpro'])?></div>
             </div>
             <?php endif; ?>
             
-            <?php if(isset($empresa['diremp'])): ?>
+            <?php if(isset($programa['horlpro'])): ?>
             <div class="col-md-2">
-                <div class="fw-bold">Horas</div>
-                <div class="form-control d-inline-block">
-                    <?=htmlspecialchars($empresa['diremp'])?> 
-                    <?=htmlspecialchars($empresa['nommun'])?> 
-                    <?=htmlspecialchars($empresa['nomdep'])?>
+                <div class="fw-bold">Horas Totales</div>
+                <div class="form-control d-inline-block fw-bold text-primary">
+                    <?=htmlspecialchars($programa['horlpro'])?> horas
                 </div>
             </div>
             <?php endif; ?>
@@ -274,13 +272,23 @@ require_once("controllers/cemp.php");
     <div class="card-body">
     <h4 class="card-title">Horario de la Hoja de Trabajo</h4>
         <br>
+<?php 
+// Obtener horas totales del programa para validación
+$horasTotalesCurso = isset($dtpro[0]['horlpro']) ? (int)$dtpro[0]['horlpro'] : 0;
+?>
+<div class="alert alert-info" id="alerta_horas_totales" style="display: none;">
+    <i class="fas fa-exclamation-triangle"></i> 
+    <strong>Atención:</strong> El total de horas programadas (<span id="horas_acumuladas">0</span>) supera las horas totales del curso (<span id="horas_limite"><?=$horasTotalesCurso?></span>).
+</div>
 <div class="table-responsive">
-    <table class="table table-bordered table-hover" style="width: 100%; max-width: 800px;">
+    <table class="table table-bordered table-hover" style="width: 100%; max-width: 900px;">
         <thead class="table-success" style="color: black;">
             <tr>
-                <th style="width: 60%;">Fecha</th>
-                <th style="width: 20%;">Hora Inicio</th>
-                <th style="width: 20%;">Hora Terminación</th>
+                <th style="width: 50%;">Fecha</th>
+                <th style="width: 15%;">Hora Inicio</th>
+                <th style="width: 15%;">Hora Terminación</th>
+                <th style="width: 10%;">Horas Día</th>
+                <th style="width: 10%;">Total Acumulado</th>
             </tr>
         </thead>
         <tbody id="horario_body">
@@ -304,7 +312,7 @@ require_once("controllers/cemp.php");
                     $periodo = new DatePeriod($fecha_inicio, $intervalo, $fecha_fin->modify('+1 day'));
                 } catch (Exception $e) {
                     // Si hay un error al crear las fechas, no mostramos el horario
-                    echo '<tr><td colspan="3" class="text-danger">Error al procesar las fechas del horario.</td></tr>';
+                    echo '<tr><td colspan="5" class="text-danger">Error al procesar las fechas del horario.</td></tr>';
                     return;
                 }
 
@@ -324,9 +332,12 @@ require_once("controllers/cemp.php");
                     }
                 }
                 
+                // Variable para acumular horas totales
+                $horas_acumuladas = 0;
+                
                 foreach($dias_espanol as $dia_ingles => $dia_espanol) {
                     if (!isset($fechas_por_dia[$dia_ingles])) continue;
-                    echo '<tr class="table-primary"><td colspan="3"><strong>'.$dia_espanol.'</strong></td></tr>';
+                    echo '<tr class="table-primary"><td colspan="5"><strong>'.$dia_espanol.'</strong></td></tr>';
                     foreach($fechas_por_dia[$dia_ingles] as $fecha) {
                         $fecha_formateada = $fecha->format('d/m/Y');
                         $unique_id = $fecha->format('Ymd');
@@ -351,6 +362,7 @@ require_once("controllers/cemp.php");
                             $fin_dt = new DateTime('2000-01-01 ' . $hora_fin_defecto);
                             $diff = $inicio_dt->diff($fin_dt);
                             $horas_totales = $diff->h + ($diff->i / 60);
+                            $horas_acumuladas += $horas_totales;
                         } else {
                             // Valores por defecto para días disponibles
                             $hora_inicio_defecto = "07:00";
@@ -386,10 +398,13 @@ require_once("controllers/cemp.php");
                             </td>
                             <td>
                                 <input type="text" name="horas_totales[]" id="htot_<?php echo $unique_id; ?>" 
-                                       class="form-control" value="<?php echo $horas_totales; ?>" 
+                                       class="form-control horas-dia" value="<?php echo $horas_totales; ?>" 
                                        style="display: inline-block; width: 100%; text-align: center; font-weight: bold;" 
                                        readonly>
                                 <input type="hidden" name="fecha_especifica[]" value="<?php echo $fecha_sql; ?>">
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="total-acumulado" id="acum_<?php echo $unique_id; ?>"><?php echo number_format($horas_acumuladas, 0); ?></span>
                             </td>
                             <td style="text-align: center;">
                                 <span class="<?php echo $estado_class; ?>"><?php echo $estado_text; ?></span>
@@ -412,7 +427,7 @@ require_once("controllers/cemp.php");
         </tbody>
     </table>
     <div class="text-center mt-3">
-                    <input onClick={guardar()} class="btn btn-primary" value="Guardar">
+                    <input onclick="guardar()" class="btn btn-primary" value="Guardar">
                     <input type="hidden" name="opera" value="save">
                     <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
                 </div>
@@ -421,6 +436,9 @@ require_once("controllers/cemp.php");
  </div>
 
 <script>
+// Variable global para las horas totales del curso
+var horasLimiteCurso = <?=$horasTotalesCurso?>;
+
 function calcularHoras(id) {
     var hini = document.getElementById('hini_' + id).value;
     var hfin = document.getElementById('hfin_' + id).value;
@@ -444,9 +462,50 @@ function calcularHoras(id) {
                 document.getElementById('hini_' + id).value = '';
                 document.getElementById('hfin_' + id).value = '';
             }
+            
+            // Recalcular total acumulado y verificar límite
+            validarHorasTotales();
         } else {
             document.getElementById('htot_' + id).value = '0';
+            validarHorasTotales();
         }
+    }
+}
+
+function validarHorasTotales() {
+    // Obtener todas las horas del día
+    var horasDiaInputs = document.querySelectorAll('.horas-dia');
+    var totalHoras = 0;
+    
+    // Sumar todas las horas
+    horasDiaInputs.forEach(function(input) {
+        var valor = parseFloat(input.value) || 0;
+        totalHoras += valor;
+    });
+    
+    // Actualizar visualización del total acumulado en cada fila
+    var acumulados = document.querySelectorAll('.total-acumulado');
+    var acumuladoParcial = 0;
+    horasDiaInputs.forEach(function(input, index) {
+        var valor = parseFloat(input.value) || 0;
+        acumuladoParcial += valor;
+        if(acumulados[index]) {
+            acumulados[index].textContent = acumuladoParcial;
+        }
+    });
+    
+    // Mostrar u ocultar alerta según si se supera el límite
+    var alerta = document.getElementById('alerta_horas_totales');
+    var spanHorasAcumuladas = document.getElementById('horas_acumuladas');
+    
+    if(horasLimiteCurso > 0 && totalHoras > horasLimiteCurso) {
+        spanHorasAcumuladas.textContent = totalHoras;
+        document.getElementById('horas_limite').textContent = horasLimiteCurso;
+        alerta.style.display = 'block';
+        alerta.className = 'alert alert-danger';
+    } else {
+        alerta.style.display = 'none';
+        alerta.className = 'alert alert-info';
     }
 }
 
@@ -464,6 +523,20 @@ function guardar() {
         }
         if(!horasInicio[i].value && horasFin[i].value) {
             alert('Por favor complete todas las horas de inicio y fin para los días disponibles.');
+            return false;
+        }
+    }
+    
+    // Validar si se superan las horas totales del curso
+    var horasDiaInputs = document.querySelectorAll('.horas-dia');
+    var totalHoras = 0;
+    horasDiaInputs.forEach(function(input) {
+        var valor = parseFloat(input.value) || 0;
+        totalHoras += valor;
+    });
+    
+    if(horasLimiteCurso > 0 && totalHoras > horasLimiteCurso) {
+        if(!confirm('ADVERTENCIA: El total de horas (' + totalHoras + ') supera las horas asignadas del curso (' + horasLimiteCurso + '). ¿Desea continuar de todas formas?')) {
             return false;
         }
     }
@@ -522,6 +595,11 @@ function guardar() {
     
     xhr.send(params);
 }
+
+// Ejecutar validación inicial al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    validarHorasTotales();
+});
 </script>
 
 
@@ -531,6 +609,32 @@ function guardar() {
         </button>
 
         <?php include("views/vhtxus.php"); ?>
+
+        <!-- Sección para mostrar instructores asignados -->
+        <?php if(!empty($instructoresAsignados)): ?>
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chalkboard-teacher"></i> Instructores Asignados</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <?php foreach($instructoresAsignados as $inst): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <?=htmlspecialchars($inst['nomusu'])?>
+                        <span class="badge bg-success rounded-pill">Activo</span>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+                <div class="mt-2 text-muted small">
+                    Total: <?=count($instructoresAsignados)?> instructor(es) asignado(s)
+                </div>
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="fas fa-info-circle"></i> No hay instructores asignados. Haga clic en el botón <i class="fa-solid fa-user-plus"></i> para agregar uno.
+        </div>
+        <?php endif; ?>
 
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CargaAsp" title="Cargar Aspirantes">
