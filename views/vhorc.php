@@ -344,7 +344,7 @@ if(!isset($pg)) {
                 $totalHorasAsignadas = 0;
                 if(!empty($horariosGuardados)) {
                     foreach($horariosGuardados as $h) {
-                        $fecha = isset($h['fecha']) ? $h['fecha'] : null;
+                        $fecha = isset($h['fecha_inicio']) ? $h['fecha_inicio'] : null;
                         if($fecha) {
                             if(!isset($horariosPorFecha[$fecha])) {
                                 $horariosPorFecha[$fecha] = [];
@@ -394,7 +394,7 @@ if(!isset($pg)) {
                                 <tr id="row-<?php echo $unique_id; ?>">
                                     <td style="padding-left:2em;"><?php echo $fechaFormateada; ?>
                                         <input type="hidden" name="fecha[]" value="<?php echo $fecha; ?>">
-                                        <input type="hidden" name="idhorario[]" value="<?php echo isset($h['idhorario']) ? $h['idhorario'] : ''; ?>">
+                                        <input type="hidden" name="idhorario[]" value="<?php echo isset($h['idhor']) ? $h['idhor'] : ''; ?>">
                                     </td>
                                     <td>
                                         <input type="time" name="hora_inicio[]" class="form-control" value="<?php echo $horaInicio; ?>" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
@@ -545,7 +545,42 @@ function agregarHorario() {
 }
 </script>
 
-<?php include("views/vhtxus.php"); ?>
+</div> <!-- Cierre de conte -->
+
+<!-- Modal Asignar Instructor -->
+<div class="modal fade" id="AgreUsuIns" tabindex="-1" aria-labelledby="modalInstructorLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="home.php?pg=<?=$pg?>&idnorad=<?=$idnorad?>&opera=AgrIns" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalInstructorLabel">Asignar Instructor</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <?php if(!empty($instructores)): ?>
+            <div class="mb-3">
+              <label for="idinstructor" class="form-label">Seleccione un instructor:</label>
+              <select name="idinstructor" id="idinstructor" class="form-select" required>
+                <option value="">-- Seleccione --</option>
+                <?php foreach($instructores as $inst): ?>
+                  <option value="<?=$inst['idusu']?>"><?=htmlspecialchars($inst['nomusu'])?> - <?=$inst['ndocusu']?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          <?php else: ?>
+            <div class="alert alert-warning">No hay instructores disponibles para asignar.</div>
+          <?php endif; ?>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <?php if(!empty($instructores)): ?>
+            <button type="submit" class="btn btn-primary">Asignar</button>
+          <?php endif; ?>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CargaAsp" title="Cargar Aspirantes">
