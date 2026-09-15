@@ -1,31 +1,43 @@
-```
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-dist/
-build/
-
-# Dependencies
-.venv/
-venv/
-node_modules/
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
+```php
 # Environment
 .env
 .env.local
 .env.*
 
-# Editors
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Cache
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# Dependencies
+node_modules/
+vendor/
+composer.lock
+
+# Build artifacts
+dist/
+build/
+*.min.js
+*.min.css
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*~
 
-# Original rules preserved
-*.log
+# OS
+.DS_Store
+Thumbs.db
 ```

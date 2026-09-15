@@ -497,9 +497,25 @@ function guardar() {
 </script>
 
 
+        <!-- Botón para agregar instructor -->
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Agregar Instructor">
           <i class="fa-solid fa-user-plus fa-2x" style="color: #ffffff;"></i>
         </button>
+        
+        <!-- Mostrar instructores asignados -->
+        <?php if(!empty($instructoresAsignados)): ?>
+        <div class="mt-3">
+            <h5>Instructores Asignados:</h5>
+            <ul class="list-group">
+                <?php foreach($instructoresAsignados as $inst): ?>
+                <li class="list-group-item">
+                    <i class="fa-solid fa-user-check text-success"></i> 
+                    <?=htmlspecialchars($inst['nomusu'])?>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?php endif; ?>
 
         <?php include("views/vhtxus.php"); ?>
 
