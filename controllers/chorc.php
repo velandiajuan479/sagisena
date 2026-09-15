@@ -54,6 +54,31 @@ if ($opera == "save" && $idnorad) {
     exit;
 }
 
+// Operación: Guardar Horario
+if ($opera == "saveHorario" && $idnorad) {
+    $fechas = isset($_POST['fecha']) ? $_POST['fecha'] : [];
+    $horasInicio = isset($_POST['hora_inicio']) ? $_POST['hora_inicio'] : [];
+    $horasFin = isset($_POST['hora_fin']) ? $_POST['hora_fin'] : [];
+    
+    if (!empty($fechas)) {
+        $mhorc->setIdnorad($idnorad);
+        // Eliminar horarios existentes
+        $mhorc->deleteHorarios($idnorad);
+        
+        // Insertar nuevos horarios
+        foreach ($fechas as $index => $fecha) {
+            if (!empty($fecha) && !empty($horasInicio[$index]) && !empty($horasFin[$index])) {
+                $mhorc->setIddia($fecha);
+                $mhorc->setHinihor($horasInicio[$index]);
+                $mhorc->setHfinhor($horasFin[$index]);
+                $mhorc->saveHorario();
+            }
+        }
+        echo "<script>alert('Horario guardado exitosamente'); window.location.href='home.php?pg=2002&idnorad=" . $idnorad . "';</script>";
+        exit;
+    }
+}
+
 // Cargar datos si existe idnorad
 if ($idnorad) {
     $mhdt->setIdnorad($idnorad);

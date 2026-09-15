@@ -226,14 +226,9 @@ if(!isset($pg)) {
 <!-- DATOS DEL INSTRUCTOR -->
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="card-title text-secondary mb-0">
-                <i class="fa-solid fa-chalkboard-user me-2 text-primary"></i>Instructor Asignado
-            </h4>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Asignar Instructor">
-                <i class="fa-solid fa-user-plus me-1"></i> Asignar Instructor
-            </button>
-        </div>
+        <h4 class="card-title text-secondary mb-3">
+            <i class="fa-solid fa-chalkboard-user me-2 text-primary"></i>Instructor Asignado
+        </h4>
 
         <?php if(!empty($datInsHdt)): ?>
             <div class="table-responsive">
@@ -268,13 +263,18 @@ if(!isset($pg)) {
                 </table>
             </div>
         <?php else: ?>
-            <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
+            <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
                 <i class="fa-solid fa-triangle-exclamation me-2 fa-lg"></i>
                 <div>
                     No hay ningún instructor asignado a esta hoja de trabajo. Haga clic en <strong>"Asignar Instructor"</strong> para asociar uno.
                 </div>
             </div>
         <?php endif; ?>
+        
+        <!-- Botón para asignar instructor -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Asignar Instructor">
+            <i class="fa-solid fa-user-plus me-1"></i> Asignar Instructor
+        </button>
     </div>
 </div>
 
@@ -415,13 +415,61 @@ if(!isset($pg)) {
         </tbody>
     </table>
     <div class="text-center mt-3">
-        <button type="button" onclick="if(typeof guardar === 'function'){ guardar(); } else { alert('Horario guardado'); }" class="btn btn-primary">Guardar Horario</button>
-        <input type="hidden" name="opera" value="save">
-        <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
+        <button type="button" onclick="guardarHorario()" class="btn btn-primary">Guardar Horario</button>
     </div>
 </div>
 
 <script>
+function guardarHorario() {
+    // Crear un formulario dinámico para enviar los datos
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'home.php?pg=<?=$pg?>&idnorad=<?=$idnorad?>&opera=saveHorario';
+    
+    // Agregar campos de fecha, hora inicio y hora fin
+    const fechas = document.querySelectorAll('input[name="fecha[]"]');
+    const horasInicio = document.querySelectorAll('input[name="hora_inicio[]"]');
+    const horasFin = document.querySelectorAll('input[name="hora_fin[]"]');
+    
+    let tieneDatos = false;
+    
+    fechas.forEach((campo, index) => {
+        const hiddenFecha = document.createElement('input');
+        hiddenFecha.type = 'hidden';
+        hiddenFecha.name = 'fecha[]';
+        hiddenFecha.value = campo.value;
+        form.appendChild(hiddenFecha);
+        
+        if (horasInicio[index]) {
+            const hiddenInicio = document.createElement('input');
+            hiddenInicio.type = 'hidden';
+            hiddenInicio.name = 'hora_inicio[]';
+            hiddenInicio.value = horasInicio[index].value;
+            form.appendChild(hiddenInicio);
+        }
+        
+        if (horasFin[index]) {
+            const hiddenFin = document.createElement('input');
+            hiddenFin.type = 'hidden';
+            hiddenFin.name = 'hora_fin[]';
+            hiddenFin.value = horasFin[index].value;
+            form.appendChild(hiddenFin);
+        }
+        
+        if (campo.value && horasInicio[index] && horasFin[index]) {
+            tieneDatos = true;
+        }
+    });
+    
+    if (!tieneDatos) {
+        alert('No hay horarios para guardar. Agregue al menos un horario.');
+        return;
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
 function agregarHorario() {
     const fecha = document.getElementById('fecha_nueva').value;
     const horaInicio = document.getElementById('hora_inicio_nueva').value;
