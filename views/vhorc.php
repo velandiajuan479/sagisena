@@ -3,6 +3,11 @@ require_once("controllers/chorc.php");
 require_once("controllers/chdt.php");
 require_once("controllers/cemp.php");
 require_once("models/mhorc.php");
+
+// Asegurar que $pg esté definido
+if(!isset($pg)) {
+    $pg = isset($_GET['pg']) ? $_GET['pg'] : '';
+}
 ?>
 <div class="conte">
     <?php echo titulo2("<i class='fas fa-calendar-alt'></i> Programación de Horarios", 2); ?>
@@ -276,47 +281,35 @@ require_once("models/mhorc.php");
 <!-- INSERCION DE HORARIO -->
 <div class="card">
     <div class="card-body">
-    <?php 
-    // Verificar si hay datos de empresa para mostrar
-    if(!empty($datOneEmp) && is_array($datOneEmp) && !empty($datOneEmp[0])): 
-        $empresa = $datOneEmp[0];
-    ?>
         <h4 class="card-title">
             Agregar Horario
         </h4>
-        <div class="row">
-            <div class="form-group col-md-3">
-                <label for="convht">Fecha</label>
-                <input type="date" name="convht" id="convht" class="form-control" value="<?php if($datOne && $datOne[0]['convht']) echo $datOne[0]['convht']; ?>">
+        <form id="formAgregarHorario">
+            <div class="row">
+                <?php
+                $fechaInicio = isset($datOneHt[0]['feclini']) ? $datOneHt[0]['feclini'] : '';
+                $fechaFin = isset($datOneHt[0]['feclin']) ? $datOneHt[0]['feclin'] : '';
+                ?>
+                <div class="form-group col-md-3 mb-3">
+                    <label for="fecha_nueva">Fecha</label>
+                    <input type="date" id="fecha_nueva" name="fecha_nueva" class="form-control" 
+                           min="<?php echo $fechaInicio; ?>" max="<?php echo $fechaFin; ?>" required>
+                </div>
+                <div class="form-group col-md-3 mb-3">
+                    <label for="hora_inicio_nueva">Hora Inicio</label>
+                    <input type="time" id="hora_inicio_nueva" name="hora_inicio_nueva" class="form-control" step="60" required>
+                </div>
+                <div class="form-group col-md-3 mb-3">
+                    <label for="hora_fin_nueva">Hora Fin</label>
+                    <input type="time" id="hora_fin_nueva" name="hora_fin_nueva" class="form-control" step="60" required>
+                </div>
+                <div class="form-group col-md-3 mb-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-success" onclick="agregarHorario()">Agregar Horario</button>
+                </div>
             </div>
-            <div class="form-group col-md-3">
-                <label for="convht">Hora Inicial</label>
-                <select name="convht" id="convht" class="form-control form-select">
-                    <?php for($r=0;$r<24;$r++){ ?>
-                        <option value="<?=$r;?>" <?php if($r==7) echo "selected" ;?>><?php if($r<10) echo "0" ;?><?=$r;?>:00</option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="form-group col-md-3">
-                <label for="convht">Hora Final</label>
-                <select name="convht" id="convht" class="form-control form-select">
-                    <?php for($r=0;$r<24;$r++){ ?>
-                        <option value="<?=$r;?>" <?php if($r==12) echo "selected" ;?>><?php if($r<10) echo "0" ;?><?=$r;?>:00</option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="col-md-1">
-                <div class="fw-bold">Horas</div>
-                <div class="form-control d-inline-block">5</div>
-            </div>
-            <div class="form-group col-md-2">
-                <input type="submit" class="btn btn-primary" value="Registrar">
-            </div>
-        </div>
-        <p class="card-text small"></p>
+        </form>
     </div>
 </div>
-<?php endif; ?>
 <br>
 
 <!-- HORARIO -->
@@ -420,71 +413,112 @@ require_once("models/mhorc.php");
             }
             ?>
         </tbody>
+    </table>
     <div class="text-center mt-3">
         <button type="button" onclick="if(typeof guardar === 'function'){ guardar(); } else { alert('Horario guardado'); }" class="btn btn-primary">Guardar Horario</button>
         <input type="hidden" name="opera" value="save">
         <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
     </div>
 </div>
-</div>
-</div>
 
-<!-- AGREGAR HORARIO -->
-<div class="card mt-3">
-    <div class="card-body">
-        <h4 class="card-title">Agregar Horario</h4>
-        <br>
-        <form id="formAgregarHorario">
-            <div class="row">
-                <?php
-                $fechaInicio = isset($datOneHt[0]['feclini']) ? $datOneHt[0]['feclini'] : '';
-                $fechaFin = isset($datOneHt[0]['feclin']) ? $datOneHt[0]['feclin'] : '';
-                ?>
-                <div class="form-group col-md-4 mb-3">
-                    <label for="fecha_nueva">Fecha</label>
-                    <input type="date" id="fecha_nueva" name="fecha_nueva" class="form-control" 
-                           min="<?php echo $fechaInicio; ?>" max="<?php echo $fechaFin; ?>" required>
-                </div>
-                <div class="form-group col-md-4 mb-3">
-                    <label for="hora_inicio_nueva">Hora Inicio</label>
-                    <input type="time" id="hora_inicio_nueva" name="hora_inicio_nueva" class="form-control" step="60" required>
-                </div>
-                <div class="form-group col-md-4 mb-3">
-                    <label for="hora_fin_nueva">Hora Fin</label>
-                    <input type="time" id="hora_fin_nueva" name="hora_fin_nueva" class="form-control" step="60" required>
-                </div>
-            </div>
-            <button type="button" class="btn btn-success" onclick="agregarHorario()">Agregar Horario</button>
-        </form>
+<script>
+function agregarHorario() {
+    const fecha = document.getElementById('fecha_nueva').value;
+    const horaInicio = document.getElementById('hora_inicio_nueva').value;
+    const horaFin = document.getElementById('hora_fin_nueva').value;
+    
+    if (!fecha || !horaInicio || !horaFin) {
+        alert('Por favor complete todos los campos del horario');
+        return;
+    }
+    
+    // Validar que la hora de fin sea mayor a la hora de inicio
+    if (horaFin <= horaInicio) {
+        alert('La hora de finalización debe ser mayor a la hora de inicio');
+        return;
+    }
+    
+    const fechaObj = new Date(fecha);
+    const diaSemana = fechaObj.toLocaleDateString('es-ES', { weekday: 'long' });
+    const diaEspanol = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);
+    const fechaFormateada = fecha.split('-').reverse().join('/');
+    const unique_id = fechaObj.toISOString().split('T')[0].replace(/-/g, '');
+    
+    // Verificar si ya existe esta fecha
+    const rowExistente = document.getElementById('row-' + unique_id);
+    if (rowExistente) {
+        alert('Ya existe un horario para esta fecha. Por favor elimine el existente primero.');
+        return;
+    }
+    
+    const tbody = document.getElementById('horario_body');
+    
+    // Si es el primer horario, quitar el mensaje de "no hay horarios"
+    const noHayHorariosMsg = tbody.querySelector('tr td[colspan="3"]');
+    if (noHayHorariosMsg) {
+        noHayHorariosMsg.parentElement.remove();
+    }
+    
+    const newRow = document.createElement('tr');
+    newRow.id = 'row-' + unique_id;
+    newRow.innerHTML = `
+        <td style="padding-left:2em;">${fechaFormateada}
+            <input type="hidden" name="fecha[]" value="${fecha}">
+            <input type="hidden" name="idhorario[]" value="">
+        </td>
+        <td>
+            <input type="time" name="hora_inicio[]" class="form-control" value="${horaInicio}" style="display: inline-block;" data-id="${unique_id}" step="60">
+        </td>
+        <td>
+            <input type="time" name="hora_fin[]" class="form-control" value="${horaFin}" style="display: inline-block;" data-id="${unique_id}" step="60">
+        </td>
+    `;
+    
+    // Agregar fila después del encabezado de día si existe, o al final
+    let inserted = false;
+    const rows = tbody.querySelectorAll('tr');
+    for (let i = 0; i < rows.length; i++) {
+        if (rows[i].classList.contains('table-primary')) {
+            const fechaRow = rows[i].querySelector('td strong');
+            if (fechaRow) {
+                const fechaTexto = fechaRow.textContent;
+                // Comparar fechas para insertar en orden
+                // Simplificado: insertar al final por ahora
+            }
+        }
+    }
+    
+    tbody.appendChild(newRow);
+    
+    // Limpiar formulario
+    document.getElementById('fecha_nueva').value = '';
+    document.getElementById('hora_inicio_nueva').value = '';
+    document.getElementById('hora_fin_nueva').value = '';
+}
+</script>
+
+<?php include("views/vhtxus.php"); ?>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CargaAsp" title="Cargar Aspirantes">
+  <i class="fa-solid fa-upload fa-2x" style="color: #ffffff;"></i>
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="CargaAsp" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Cargar Aspirantes</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="file" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary">Cargar</button>
+      </div>
     </div>
+  </div>
 </div>
-
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Agregar Instructor">
-          <i class="fa-solid fa-user-plus fa-2x" style="color: #ffffff;"></i>
-        </button>
-
-        <?php include("views/vhtxus.php"); ?>
-
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CargaAsp" title="Cargar Aspirantes">
-          <i class="fa-solid fa-upload fa-2x" style="color: #ffffff;"></i>
-        </button>
-
-        <!-- Modal -->
-        <div class="modal fade" id="CargaAsp" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Cargar Aspirantes</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <input type="file" class="form-control">
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary">Cargar</button>
-              </div>
-            </div>
-          </div>
-        </div>
