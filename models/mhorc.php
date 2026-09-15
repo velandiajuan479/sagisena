@@ -22,6 +22,7 @@ class Mhorc {
     private $fecha_especifica;
     private $feclini;
     private $feclin;
+    private $idusu;
 
     // Getters
     
@@ -55,6 +56,10 @@ class Mhorc {
 
     public function getFeclin() {
         return $this->feclin;
+    }
+
+    public function getIdusu() {
+        return $this->idusu;
     }
 
 
@@ -92,6 +97,9 @@ class Mhorc {
         $this->feclin = $feclin;
     }
 
+    public function setIdusu($idusu) {
+        $this->idusu = $idusu;
+    }
 
  
     public function del() {
@@ -275,6 +283,32 @@ class Mhorc {
         $result->bindParam(':feclini', $feclini);
         $result->bindParam(':feclin', $feclin);
         $result->bindParam(':idnorad_excluir', $idnorad_excluir);
+        
+        $result->execute();
+        $res = $result->fetchAll(PDO::FETCH_ASSOC);
+        return $res;
+    }
+
+    // Obtener horarios ocupados por un instructor específico en un rango de fechas
+    public function getHorariosPorInstructor() {
+        $sql = "SELECT h.fecha_especifica, h.hinihor, h.hfinhor, h.idnorad, hd.idfic
+                FROM horario h
+                INNER JOIN hojatra hd ON h.idnorad = hd.idnorad
+                INNER JOIN hdtxusu hu ON h.idnorad = hu.idnorad
+                WHERE h.fecha_especifica BETWEEN :feclini AND :feclin 
+                AND hu.idusu = :idusu
+                ORDER BY h.fecha_especifica";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $result = $conexion->prepare($sql);
+        
+        $feclini = $this->getFeclini();
+        $feclin = $this->getFeclin();
+        $idusu = $this->getIdusu();
+        
+        $result->bindParam(':feclini', $feclini);
+        $result->bindParam(':feclin', $feclin);
+        $result->bindParam(':idusu', $idusu);
         
         $result->execute();
         $res = $result->fetchAll(PDO::FETCH_ASSOC);
