@@ -424,30 +424,5 @@ class Mhdt{
 	        return [];
 	    }
 	}
-
-	public function getInstructoresPorHoja(){
-		try {
-			$sql = "SELECT DISTINCT u.idusu, u.nomusu, u.apeusu, u.docusu, u.corusu, u.telusu
-					FROM hdtxusu htu
-					INNER JOIN usuario u ON htu.idusu = u.idusu
-					WHERE htu.idnorad = :idnorad AND u.act = 1
-					ORDER BY u.nomusu ASC";
-			$modelo = new conexion();
-			$conexion = $modelo->get_conexion();
-			$result = $conexion->prepare($sql);
-			$idnorad = $this->getIdnorad();
-			$result->bindParam(':idnorad', $idnorad);
-			$result->execute();
-			$res = $result->fetchall(PDO::FETCH_ASSOC);
-			return $res;
-		} catch (Exception $e) {
-	        if(function_exists('ManejoError')) {
-	            ManejoError($e);
-	        } else {
-	            echo '<script>alert("Error al obtener instructores por hoja");</script>';
-	        }
-	        return [];
-	    }
-	}
 }
 ?>
