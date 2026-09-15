@@ -1,15 +1,28 @@
 <?php
 class Mhorc {
 
+    private $idhor;
     private $iddia;
+    private $fecha_especifica;
     private $hinihor;
     private $hfinhor;
+    private $idnorad;
+    private $idusu;
+    private $feclini;
+    private $feclin;
 
     // Getters
     
+    public function getIdhor() {
+        return $this->idhor;
+    }
 
     public function getIddia() {
         return $this->iddia;
+    }
+
+    public function getFechaEspecifica() {
+        return $this->fecha_especifica;
     }
 
     public function getHinihor() {
@@ -20,11 +33,35 @@ class Mhorc {
         return $this->hfinhor;
     }
 
+    public function getIdnorad() {
+        return $this->idnorad;
+    }
+
+    public function getIdusu() {
+        return $this->idusu;
+    }
+
+    public function getFeclini() {
+        return $this->feclini;
+    }
+
+    public function getFeclin() {
+        return $this->feclin;
+    }
+
 
     // Setters
 
+    public function setIdhor($idhor) {
+        $this->idhor = $idhor;
+    }
+
     public function setIddia($iddia) {
         $this->iddia = $iddia;
+    }
+
+    public function setFechaEspecifica($fecha_especifica) {
+        $this->fecha_especifica = $fecha_especifica;
     }
 
     public function setHinihor($hinihor) {
@@ -35,8 +72,21 @@ class Mhorc {
         $this->hfinhor = $hfinhor;
     }
 
+    public function setIdnorad($idnorad) {
+        $this->idnorad = $idnorad;
+    }
 
- 
+    public function setIdusu($idusu) {
+        $this->idusu = $idusu;
+    }
+
+    public function setFeclini($feclini) {
+        $this->feclini = $feclini;
+    }
+
+    public function setFeclin($feclin) {
+        $this->feclin = $feclin;
+    }
     public function del() {
         $sql = "DELETE FROM horario WHERE id=:iddia AND hinihor=:hinihor AND hfinhor=:hfinhor";
         $modelo = new conexion();
@@ -134,12 +184,25 @@ class Mhorc {
         return $res;
     }
 
+    // Guardar horario con fecha específica
+    public function saveConFecha() {
+        try {
+            $modelo = new conexion();
+            $conexion = $modelo->get_conexion();
+            $sql = "INSERT INTO horario (fecha_especifica, hinihor, hfinhor, idnorad, idusu) 
+                    VALUES (:fecha_especifica, :hinihor, :hfinhor, :idnorad, :idusu)";
+            $result = $conexion->prepare($sql);
 
-            $result->bindParam(':idnorad', $idnorad);
+            $fecha_especifica = $this->getFechaEspecifica();
+            $hinihor = $this->getHinihor();
+            $hfinhor = $this->getHfinhor();
+            $idnorad = $this->getIdnorad();
+            $idusu = $this->getIdusu() ? $this->getIdusu() : 1;
+
             $result->bindParam(':fecha_especifica', $fecha_especifica);
             $result->bindParam(':hinihor', $hinihor);
             $result->bindParam(':hfinhor', $hfinhor);
-            $result->bindParam(':iddia', $iddia);
+            $result->bindParam(':idnorad', $idnorad);
             $result->bindParam(':idusu', $idusu);
 
             $result->execute();
@@ -161,7 +224,7 @@ class Mhorc {
         $hinihor = $this->getHinihor();
         $hfinhor = $this->getHfinhor();
         $idnorad = $this->getIdnorad();
-        $idusu = $this->getIdusu() ? $this->getIdusu() : 1; // Usuario actual (instructor)
+        $idusu = $this->getIdusu() ? $this->getIdusu() : 1;
         
         $result->bindParam(':idhor', $idhor);
         $result->bindParam(':fecha_especifica', $fecha_especifica);
@@ -197,6 +260,24 @@ class Mhorc {
         $result->bindParam(':feclini', $feclini);
         $result->bindParam(':feclin', $feclin);
         $result->bindParam(':idnorad_excluir', $idnorad_excluir);
+        
+        $result->execute();
+        $res = $result->fetchAll(PDO::FETCH_ASSOC);
+        return $res;
+    }
+
+    // Obtener horario por fecha específica
+    public function getByFecha() {
+        $sql = "SELECT * FROM horario WHERE fecha_especifica = :fecha_especifica AND idnorad = :idnorad";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $result = $conexion->prepare($sql);
+        
+        $fecha_especifica = $this->getFechaEspecifica();
+        $idnorad = $this->getIdnorad();
+        
+        $result->bindParam(':fecha_especifica', $fecha_especifica);
+        $result->bindParam(':idnorad', $idnorad);
         
         $result->execute();
         $res = $result->fetchAll(PDO::FETCH_ASSOC);

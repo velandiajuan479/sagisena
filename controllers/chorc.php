@@ -210,7 +210,22 @@ if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
     $idnorad_excluir = !empty($idnorad) ? $idnorad : 0;
     $mhorc->setIdnorad($idnorad_excluir);
     $datHorariosOcupados = $mhorc->getHorariosOcupados();
+} else {
+    $datHorariosOcupados = [];
 }
+
+// Variables por defecto para la vista del horario
+$hora_inicio_defecto = "07:00";
+$hora_fin_defecto = "17:00";
+$horas_totales = "10";
+$disabled_attr = "";
+$esta_ocupado = false;
+$estado_class = "";
+$estado_text = "";
+$ficha_ocupante = "";
+$nombre_instructor_ocupante = "";
+$instructor_ocupante = "";
+$fecha_sql = "";
 
 // Obtener instructores asignados a la hoja de trabajo
 $instructoresAsignados = [];
