@@ -114,7 +114,7 @@ class Mhorc {
 
     // Sección de Horarios
     public function getHorario() {
-        $sql = "SELECT * FROM horarios WHERE id=:iddia and hinihor=:hinihor and hfinhor=:hfinhor";
+        $sql = "SELECT * FROM horario WHERE id=:iddia and hinihor=:hinihor and hfinhor=:hfinhor";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();
         $result = $conexion->prepare($sql);
