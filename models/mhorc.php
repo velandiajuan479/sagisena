@@ -144,18 +144,41 @@ class Mhorc {
         }
     }
  
-    public function del() {
-        $sql = "DELETE FROM horario WHERE id=:iddia AND hinihor=:hinihor AND hfinhor=:hfinhor";
-        $modelo = new conexion();
-        $conexion = $modelo->get_conexion();
-        $result = $conexion->prepare($sql);
-        $iddia = $this->getIddia();
-        $result->bindParam(':iddia', $iddia);
-        $hinihor = $this->getHinihor();
-        $result->bindParam(':hinihor', $hinihor);
-        $hfinhor = $this->getHfinhor();
-        $result->bindParam(':hfinhor', $hfinhor);
-        $result->execute();
+    public function deleteHorarios($idnorad) {
+        try {
+            $sql = "DELETE FROM horario WHERE idnorad = :idnorad";
+            $modelo = new conexion();
+            $conexion = $modelo->get_conexion();
+            $stmt = $conexion->prepare($sql);
+            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            if(function_exists('ManejoError')) {
+                ManejoError($e);
+            }
+            return false;
+        }
+    }
+
+    public function saveHorario() {
+        try {
+            $modelo = new conexion();
+            $conexion = $modelo->get_conexion();
+            $sql = "INSERT INTO horario (idnorad, iddia, hinihor, hfinhor) VALUES (:idnorad, :iddia, :hinihor, :hfinhor)";
+            $result = $conexion->prepare($sql);
+
+            $result->bindParam(':idnorad', $this->idnorad);
+            $result->bindParam(':iddia', $this->iddia);
+            $result->bindParam(':hinihor', $this->hinihor);
+            $result->bindParam(':hfinhor', $this->hfinhor);
+
+            return $result->execute();
+        } catch (Exception $e) {
+            if(function_exists('ManejoError')) {
+                ManejoError($e);
+            }
+            return false;
+        }
     }
 
     public function getAllVal($iddom) {
