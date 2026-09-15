@@ -275,12 +275,15 @@ require_once("controllers/cemp.php");
     <h4 class="card-title">Horario de la Hoja de Trabajo</h4>
         <br>
 <div class="table-responsive">
-    <table class="table table-bordered table-hover" style="width: 100%; max-width: 800px;">
+    <table class="table table-bordered table-hover" style="width: 100%; max-width: 900px;">
         <thead class="table-success" style="color: black;">
             <tr>
-                <th style="width: 60%;">Fecha</th>
-                <th style="width: 20%;">Hora Inicio</th>
-                <th style="width: 20%;">Hora Terminación</th>
+                <th style="width: 25%;">Día</th>
+                <th style="width: 20%;">Fecha</th>
+                <th style="width: 15%;">Hora Inicio</th>
+                <th style="width: 15%;">Hora Terminación</th>
+                <th style="width: 15%;">Horas Totales</th>
+                <th style="width: 10%;">Estado</th>
             </tr>
         </thead>
         <tbody id="horario_body">
@@ -288,13 +291,13 @@ require_once("controllers/cemp.php");
             if(!empty($datOneHt) && is_array($datOneHt) && !empty($datOneHt[0]) && 
                !empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
                 $dias_espanol = [
-                    'Monday' => 'Lunes',
-                    'Tuesday' => 'Martes',
-                    'Wednesday' => 'Miércoles',
-                    'Thursday' => 'Jueves',
-                    'Friday' => 'Viernes',
-                    'Saturday' => 'Sábado',
-                    'Sunday' => 'Domingo'
+                    'Monday' => 'LUNES',
+                    'Tuesday' => 'MARTES',
+                    'Wednesday' => 'MIÉRCOLES',
+                    'Thursday' => 'JUEVES',
+                    'Friday' => 'VIERNES',
+                    'Saturday' => 'SÁBADO',
+                    'Sunday' => 'DOMINGO'
                 ];
                 
                 try {
@@ -303,8 +306,7 @@ require_once("controllers/cemp.php");
                     $intervalo = new DateInterval('P1D');
                     $periodo = new DatePeriod($fecha_inicio, $intervalo, $fecha_fin->modify('+1 day'));
                 } catch (Exception $e) {
-                    // Si hay un error al crear las fechas, no mostramos el horario
-                    echo '<tr><td colspan="3" class="text-danger">Error al procesar las fechas del horario.</td></tr>';
+                    echo '<tr><td colspan="6" class="text-danger">Error al procesar las fechas del horario.</td></tr>';
                     return;
                 }
 
@@ -314,24 +316,84 @@ require_once("controllers/cemp.php");
                     $dia_ingles = $fecha->format('l');
                     $fechas_por_dia[$dia_ingles][] = clone $fecha;
                 }
+                
+                // Obtener horarios ocupados para validación de conflictos
+                $horarios_ocupados = [];
+                if(isset($datHorariosOcupados) && is_array($datHorariosOcupados)) {
+                    foreach($datHorariosOcupados as $hor) {
+                        $fecha_hor = isset($hor['fecha_especifica']) ? $hor['fecha_especifica'] : null;
+                        if($fecha_hor) {
+                            $horarios_ocupados[$fecha_hor] = [
+                                'hinihor' => isset($hor['hinihor']) ? $hor['hinihor'] : null,
+                                'hfinhor' => isset($hor['hfinhor']) ? $hor['hfinhor'] : null,
+                                'idfic' => isset($hor['idfic']) ? $hor['idfic'] : null
+                            ];
+                        }
+                    }
+                }
+                
                 foreach($dias_espanol as $dia_ingles => $dia_espanol) {
                     if (!isset($fechas_por_dia[$dia_ingles])) continue;
-                    echo '<tr class="table-primary"><td colspan="3"><strong>'.$dia_espanol.'</strong></td></tr>';
+                    echo '<tr class="table-primary"><td colspan="6"><strong>'.$dia_espanol.'</strong></td></tr>';
                     foreach($fechas_por_dia[$dia_ingles] as $fecha) {
                         $fecha_formateada = $fecha->format('d/m/Y');
+                        $fecha_sql = $fecha->format('Y-m-d');
                         $unique_id = $fecha->format('Ymd');
+                        
+                        // Verificar si el día está ocupado por otra ficha
+                        $esta_ocupado = false;
+                        $ficha_ocupante = null;
+                        if(isset($horarios_ocupados[$fecha_sql])) {
+                            $esta_ocupado = true;
+                            $ficha_ocupante = $horarios_ocupados[$fecha_sql]['idfic'];
+                        }
+                        
+                        // Determinar clases y atributos según estado
+                        $row_class = $esta_ocupado ? 'table-danger' : '';
+                        $disabled_attr = $esta_ocupado ? 'disabled' : '';
+                        $estado_text = $esta_ocupado ? 'Bloqueado' : 'Disponible';
+                        $estado_class = $esta_ocupado ? 'badge bg-danger' : 'badge bg-success';
+                        
+                        // Valores por defecto según el Excel (07:00 - 17:00 = 10 horas)
+                        $hora_inicio_defecto = '07:00';
+                        $hora_fin_defecto = '17:00';
+                        $horas_totales = 10;
                         ?>
-                        <tr id="row-<?php echo $unique_id; ?>">
-                            <td style="padding-left:2em;"> <?php echo $fecha_formateada; ?>
-                                <input type="hidden" name="fecha[]" value="<?php echo $fecha->format('Y-m-d'); ?>">
+                        <tr id="row-<?php echo $unique_id; ?>" class="<?php echo $row_class; ?>">
+                            <td style="padding-left:1em; font-weight:bold;"><?php echo $dia_espanol; ?></td>
+                            <td>
+                                <?php echo $fecha_formateada; ?>
+                                <input type="hidden" name="fecha[]" value="<?php echo $fecha_sql; ?>">
                             </td>
                             <td>
-                                <input type="time" name="hora_inicio[]" class="form-control" value="" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                <input type="time" name="hora_inicio[]" id="hini_<?php echo $unique_id; ?>" 
+                                       class="form-control" value="<?php echo $hora_inicio_defecto; ?>" 
+                                       style="display: inline-block; width: 100%;" 
+                                       data-id="<?php echo $unique_id; ?>" step="60" 
+                                       <?php echo $disabled_attr; ?>
+                                       onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
                             <td>
-                                <input type="time" name="hora_fin[]" class="form-control" value="" style="display: inline-block;" data-id="<?php echo $unique_id; ?>" step="60">
+                                <input type="time" name="hora_fin[]" id="hfin_<?php echo $unique_id; ?>" 
+                                       class="form-control" value="<?php echo $hora_fin_defecto; ?>" 
+                                       style="display: inline-block; width: 100%;" 
+                                       data-id="<?php echo $unique_id; ?>" step="60" 
+                                       <?php echo $disabled_attr; ?>
+                                       onchange="calcularHoras('<?php echo $unique_id; ?>')">
                             </td>
-                            
+                            <td>
+                                <input type="text" name="horas_totales[]" id="htot_<?php echo $unique_id; ?>" 
+                                       class="form-control" value="<?php echo $horas_totales; ?>" 
+                                       style="display: inline-block; width: 100%; text-align: center; font-weight: bold;" 
+                                       readonly>
+                                <input type="hidden" name="fecha_especifica[]" value="<?php echo $fecha_sql; ?>">
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="<?php echo $estado_class; ?>"><?php echo $estado_text; ?></span>
+                                <?php if($esta_ocupado): ?>
+                                    <br><small class="text-muted">Ficha: <?php echo htmlspecialchars($ficha_ocupante); ?></small>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                         <?php
                     }
@@ -341,13 +403,84 @@ require_once("controllers/cemp.php");
         </tbody>
     </table>
     <div class="text-center mt-3">
-                    <input onClick={guardar()} class="btn btn-primary" value="Guardar">
-                    <input type="hidden" name="opera" value="save">
-                    <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
-                </div>
+        <button type="button" onclick="guardar()" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar Horario
+        </button>
+        <input type="hidden" name="opera" value="save">
+        <input type="hidden" name="idnorad" value="<?php if($datOne && $datOne[0]['idnorad']) echo $datOne[0]['idnorad']; ?>">
+    </div>
 </div>
  </div>
  </div>
+
+<script>
+function calcularHoras(id) {
+    var hini = document.getElementById('hini_' + id).value;
+    var hfin = document.getElementById('hfin_' + id).value;
+    
+    if(hini && hfin) {
+        var inicio = new Date('2000-01-01 ' + hini);
+        var fin = new Date('2000-01-01 ' + hfin);
+        
+        if(fin > inicio) {
+            var diffMs = fin - inicio;
+            var diffHrs = diffMs / (1000 * 60 * 60);
+            document.getElementById('htot_' + id).value = diffHrs.toFixed(0);
+        } else {
+            document.getElementById('htot_' + id).value = '0';
+        }
+    }
+}
+
+function guardar() {
+    // Validar que todos los campos estén completos
+    var fechas = document.querySelectorAll('input[name="fecha_especifica[]"]');
+    var horasInicio = document.querySelectorAll('input[name="hora_inicio[]"]:not([disabled])');
+    var horasFin = document.querySelectorAll('input[name="hora_fin[]"]:not([disabled])');
+    
+    for(var i = 0; i < horasInicio.length; i++) {
+        if(!horasInicio[i].value || !horasFin[i].value) {
+            alert('Por favor complete todas las horas de inicio y fin para los días disponibles.');
+            return false;
+        }
+    }
+    
+    // Recopilar datos
+    var datos = [];
+    for(var i = 0; i < fechas.length; i++) {
+        var hiniInput = document.getElementById('hini_' + fechas[i].value.replace(/-/g, ''));
+        var hfinInput = document.getElementById('hfin_' + fechas[i].value.replace(/-/g, ''));
+        
+        if(hiniInput && !hiniInput.disabled) {
+            datos.push({
+                fecha: fechas[i].value,
+                hora_inicio: hiniInput.value + ':00',
+                hora_fin: hfinInput.value + ':00',
+                horas_totales: document.getElementById('htot_' + fechas[i].value.replace(/-/g, '')).value
+            });
+        }
+    }
+    
+    // Enviar datos al servidor
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'index.php?ctl=horc&opera=save', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    
+    var params = 'opera=save_horario&idnorad=<?php echo isset($datOne[0]["idnorad"]) ? $datOne[0]["idnorad"] : ""; ?>&' + 
+                 'datos=' + encodeURIComponent(JSON.stringify(datos));
+    
+    xhr.onload = function() {
+        if(xhr.status === 200) {
+            alert('Horario guardado exitosamente');
+            location.reload();
+        } else {
+            alert('Error al guardar el horario');
+        }
+    };
+    
+    xhr.send(params);
+}
+</script>
 
 
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#AgreUsuIns" title="Agregar Instructor">
