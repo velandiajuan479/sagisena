@@ -292,7 +292,8 @@ class Mhorc {
                             VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
                     $stmt = $conexion->prepare($sql);
                     $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-                    $stmt->bindParam(':fecha_inicio', $fechaActual->format('Y-m-d'));
+                    $fechaFormateada = $fechaActual->format('Y-m-d');
+                    $stmt->bindParam(':fecha_inicio', $fechaFormateada);
                     $stmt->bindParam(':hinihor', $horaInicio);
                     $stmt->bindParam(':hfinhor', $horaFin);
                     $stmt->execute();
