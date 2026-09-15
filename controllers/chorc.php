@@ -218,6 +218,22 @@ if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
     $datHorariosOcupados = [];
 }
 
+// Obtener horarios YA guardados de esta ficha para mostrarlos en el calendario
+$horariosGuardadosMap = [];
+if(!empty($idnorad)) {
+    $mhorc_propia = new Mhorc();
+    $mhorc_propia->setIdnorad($idnorad);
+    $datHorariosGuardados = $mhorc_propia->getAll();
+    if(!empty($datHorariosGuardados)) {
+        foreach($datHorariosGuardados as $hg) {
+            if(!empty($hg['fecha_especifica'])) {
+                $key = date('Ymd', strtotime($hg['fecha_especifica']));
+                $horariosGuardadosMap[$key] = $hg;
+            }
+        }
+    }
+}
+
 // Obtener datos para los selectores (programas, empresas, programas especiales, jornadas)
 $datPr = $mhdt->getAllPro();
 $datEm = $mhdt->getAllEmp();

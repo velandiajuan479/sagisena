@@ -281,14 +281,38 @@ $horasTotalesCurso = isset($dtpro[0]['horlpro']) ? (int)$dtpro[0]['horlpro'] : 0
     <strong>Atención:</strong> El total de horas programadas (<span id="horas_acumuladas">0</span>) supera las horas totales del curso (<span id="horas_limite"><?=$horasTotalesCurso?></span>).
 </div>
 <div class="table-responsive">
+<!-- Barra de aplicación masiva -->
+<div class="card mb-2 border-primary">
+    <div class="card-body py-2">
+        <div class="row align-items-center g-2">
+            <div class="col-auto">
+                <strong><i class="fas fa-clock"></i> Aplicar a todas las fechas disponibles:</strong>
+            </div>
+            <div class="col-auto">
+                <label class="form-label mb-0 small">Hora inicio</label>
+                <input type="time" id="bulk_hini" class="form-control form-control-sm" value="07:00" step="3600">
+            </div>
+            <div class="col-auto">
+                <label class="form-label mb-0 small">Hora fin</label>
+                <input type="time" id="bulk_hfin" class="form-control form-control-sm" value="17:00" step="3600">
+            </div>
+            <div class="col-auto">
+                <button type="button" onclick="applyAllDates()" class="btn btn-outline-primary btn-sm mt-3">
+                    <i class="fas fa-check-double"></i> Aplicar a todos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
     <table class="table table-bordered table-hover" style="width: 100%; max-width: 900px;">
         <thead class="table-success" style="color: black;">
             <tr>
-                <th style="width: 50%;">Fecha</th>
-                <th style="width: 15%;">Hora Inicio</th>
-                <th style="width: 15%;">Hora Terminación</th>
-                <th style="width: 10%;">Horas Día</th>
-                <th style="width: 10%;">Total Acumulado</th>
+                <th style="width: 45%;">Fecha</th>
+                <th style="width: 13%;">Hora Inicio</th>
+                <th style="width: 13%;">Hora Terminación</th>
+                <th style="width: 9%;">Horas Día</th>
+                <th style="width: 9%;">Total Acumulado</th>
+                <th style="width: 11%;">Estado</th>
             </tr>
         </thead>
         <tbody id="horario_body">
@@ -334,10 +358,21 @@ $horasTotalesCurso = isset($dtpro[0]['horlpro']) ? (int)$dtpro[0]['horlpro'] : 0
                 
                 // Variable para acumular horas totales
                 $horas_acumuladas = 0;
+                $fechas_ocupadas_conteo = 0;
                 
                 foreach($dias_espanol as $dia_ingles => $dia_espanol) {
                     if (!isset($fechas_por_dia[$dia_ingles])) continue;
-                    echo '<tr class="table-primary"><td colspan="5"><strong>'.$dia_espanol.'</strong></td></tr>';
+
+                    // Contar fechas ocupadas de este día antes de saber si el grupo tiene fechas visibles
+                    $fechas_visibles_dia = array_filter($fechas_por_dia[$dia_ingles], function($f) use ($horarios_ocupados_map) {
+                        return !isset($horarios_ocupados_map[$f->format('Ymd')]);
+                    });
+                    if(empty($fechas_visibles_dia)) {
+                        $fechas_ocupadas_conteo += count($fechas_por_dia[$dia_ingles]);
+                        continue; // Ocultar encabezado del día si todas sus fechas están ocupadas
+                    }
+
+                    echo '<tr class="table-primary"><td colspan="6"><strong>'.$dia_espanol.'</strong></td></tr>';
                     foreach($fechas_por_dia[$dia_ingles] as $fecha) {
                         $fecha_formateada = $fecha->format('d/m/Y');
                         $unique_id = $fecha->format('Ymd');
@@ -347,30 +382,32 @@ $horasTotalesCurso = isset($dtpro[0]['horlpro']) ? (int)$dtpro[0]['horlpro'] : 0
                         $esta_ocupado = isset($horarios_ocupados_map[$unique_id]);
                         
                         if($esta_ocupado) {
-                            $ho = $horarios_ocupados_map[$unique_id];
-                            $hora_inicio_defecto = $ho['hinihor'];
-                            $hora_fin_defecto = $ho['hfinhor'];
-                            $disabled_attr = "disabled";
-                            $estado_class = "text-danger fw-bold";
-                            $estado_text = "OCUPADO";
-                            $ficha_ocupante = $ho['idfic'] ?? '';
-                            $nombre_instructor_ocupante = $ho['nombre_instructor'] ?? '';
-                            $instructor_ocupante = $ho['idusu'] ?? '';
-                            
-                            // Calcular horas totales
-                            $inicio_dt = new DateTime('2000-01-01 ' . $hora_inicio_defecto);
-                            $fin_dt = new DateTime('2000-01-01 ' . $hora_fin_defecto);
-                            $diff = $inicio_dt->diff($fin_dt);
-                            $horas_totales = $diff->h + ($diff->i / 60);
-                            $horas_acumuladas += $horas_totales;
+                            // Fecha ocupada por otra ficha: no se muestra, solo se cuenta
+                            $fechas_ocupadas_conteo++;
+                            continue;
                         } else {
-                            // Valores por defecto para días disponibles
-                            $hora_inicio_defecto = "07:00";
-                            $hora_fin_defecto = "17:00";
-                            $horas_totales = "10";
+                            // Verificar si hay un horario YA guardado para esta fecha en esta ficha
+                            if(isset($horariosGuardadosMap[$unique_id])) {
+                                $hg = $horariosGuardadosMap[$unique_id];
+                                // Formatear a HH:MM para el input type="time"
+                                $hora_inicio_defecto = substr($hg['hinihor'], 0, 5);
+                                $hora_fin_defecto    = substr($hg['hfinhor'], 0, 5);
+                                $inicio_dt    = new DateTime('2000-01-01 ' . $hg['hinihor']);
+                                $fin_dt       = new DateTime('2000-01-01 ' . $hg['hfinhor']);
+                                $diff         = $inicio_dt->diff($fin_dt);
+                                $horas_totales = $diff->h + ($diff->i / 60);
+                                $horas_acumuladas += $horas_totales;
+                                $estado_class = "text-success fw-bold";
+                                $estado_text  = "GUARDADO";
+                            } else {
+                                // Valores por defecto para días sin horario asignado
+                                $hora_inicio_defecto = "07:00";
+                                $hora_fin_defecto = "17:00";
+                                $horas_totales = "10";
+                                $estado_class = "";
+                                $estado_text  = "";
+                            }
                             $disabled_attr = "";
-                            $estado_class = "";
-                            $estado_text = "";
                             $ficha_ocupante = "";
                             $nombre_instructor_ocupante = "";
                             $instructor_ocupante = "";
@@ -426,6 +463,12 @@ $horasTotalesCurso = isset($dtpro[0]['horlpro']) ? (int)$dtpro[0]['horlpro'] : 0
             ?>
         </tbody>
     </table>
+    <?php if(!empty($fechas_ocupadas_conteo) && $fechas_ocupadas_conteo > 0): ?>
+    <div class="alert alert-warning py-2 mt-2">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong><?=$fechas_ocupadas_conteo?> fecha(s)</strong> no aparecen porque ya tienen clase asignada a otra ficha en el mismo horario.
+    </div>
+    <?php endif; ?>
     <div class="text-center mt-3">
                     <input onclick="guardar()" class="btn btn-primary" value="Guardar">
                     <input type="hidden" name="opera" value="save">
@@ -472,6 +515,43 @@ function calcularHoras(id) {
     }
 }
 
+// Aplica el mismo horario a todas las filas disponibles (no deshabilitadas)
+function applyAllDates() {
+    var bulkHini = document.getElementById('bulk_hini').value;
+    var bulkHfin = document.getElementById('bulk_hfin').value;
+    if(!bulkHini || !bulkHfin) {
+        alert('Por favor ingrese la hora de inicio y fin antes de aplicar.');
+        return;
+    }
+    if(bulkHini >= bulkHfin) {
+        alert('La hora de inicio debe ser menor que la hora de fin.');
+        return;
+    }
+    // Buscar las filas de la tabla por los inputs de horas (por ID, no por name[])
+    // Los IDs son: hini_YYYYMMDD y hfin_YYYYMMDD
+    var allHiniInputs = document.querySelectorAll('[id^="hini_"]');
+    if(allHiniInputs.length === 0) {
+        alert('No hay fechas disponibles para asignar horario.');
+        return;
+    }
+    var count = 0;
+    allHiniInputs.forEach(function(hiniInp) {
+        if(!hiniInp.disabled) {
+            var id = hiniInp.id.replace('hini_', '');
+            var hfinInp = document.getElementById('hfin_' + id);
+            if(hfinInp && !hfinInp.disabled) {
+                hiniInp.value = bulkHini;
+                hfinInp.value = bulkHfin;
+                calcularHoras(id);
+                count++;
+            }
+        }
+    });
+    if(count === 0) {
+        alert('No hay fechas disponibles (todas están ocupadas por otra ficha).');
+    }
+}
+
 function validarHorasTotales() {
     // Obtener todas las horas del día
     var horasDiaInputs = document.querySelectorAll('.horas-dia');
@@ -510,6 +590,12 @@ function validarHorasTotales() {
 }
 
 function guardar() {
+    // Verificar que haya un idnorad válido
+    var idnoradInput = document.querySelector('input[name="idnorad"]');
+    if(!idnoradInput || !idnoradInput.value || idnoradInput.value == '0') {
+        alert('Error: No se ha seleccionado una Hoja de Trabajo válida. Acceda a esta página desde la ficha correspondiente.');
+        return false;
+    }
     // Validar que todos los campos estén completos solo para días disponibles con horas
     var fechas = document.querySelectorAll('input[name="fecha_especifica[]"]');
     var horasInicio = document.querySelectorAll('input[name="hora_inicio[]"]:not([disabled])');
@@ -541,30 +627,28 @@ function guardar() {
         }
     }
     
-    // Recopilar datos
+    // Recopilar datos usando IDs (evita problemas con selectores name[])
     var datos = [];
-    for(var i = 0; i < fechas.length; i++) {
-        var hiniInput = document.getElementById('hini_' + fechas[i].value.replace(/-/g, ''));
-        var hfinInput = document.getElementById('hfin_' + fechas[i].value.replace(/-/g, ''));
-        
-        // Solo guardar si tiene horas (días programados) y no está deshabilitado
-        if(hiniInput && !hiniInput.disabled && hiniInput.value && hfinInput.value) {
-            // Formatear horas en formato militar HH:00:00
-            var horaInicioFormat = hiniInput.value + ':00';
-            var horaFinFormat = hfinInput.value + ':00';
-            
-            datos.push({
-                fecha: fechas[i].value,
-                hora_inicio: horaInicioFormat,
-                hora_fin: horaFinFormat,
-                horas_totales: document.getElementById('htot_' + fechas[i].value.replace(/-/g, '')).value
-            });
+    var allHiniInputs = document.querySelectorAll('[id^="hini_"]');
+    allHiniInputs.forEach(function(hiniInp) {
+        if(!hiniInp.disabled && hiniInp.value) {
+            var id = hiniInp.id.replace('hini_', '');
+            var hfinInp = document.getElementById('hfin_' + id);
+            if(hfinInp && !hfinInp.disabled && hfinInp.value) {
+                // Reconstruir la fecha YYYY-MM-DD desde el ID YYYYMMDD
+                var fechaSql = id.substring(0,4) + '-' + id.substring(4,6) + '-' + id.substring(6,8);
+                datos.push({
+                    fecha: fechaSql,
+                    hora_inicio: hiniInp.value + ':00',
+                    hora_fin: hfinInp.value + ':00'
+                });
+            }
         }
-    }
+    });
     
     // Enviar datos al servidor
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'index.php?ctl=chorc', true);
+    xhr.open('POST', 'controllers/ajax_horc.php', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     
     var idnorad = document.querySelector('input[name="idnorad"]').value;
