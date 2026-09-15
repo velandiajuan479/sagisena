@@ -197,4 +197,37 @@ if(!empty($idnorad)) {
     }
 }
 
+// Manejar agregado de instructor
+if(isset($_POST['opera']) && $_POST['opera'] == 'AgrIns' && !empty($idnorad) && !empty($_POST['idinstructor'])) {
+    $idinstructor = $_POST['idinstructor'];
+    try {
+        // Verificar si ya existe el instructor
+        $sql_check = "SELECT COUNT(*) as existe FROM hdtxusu WHERE idnorad = :idnorad AND idusu = :idusu";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $stmt_check = $conexion->prepare($sql_check);
+        $stmt_check->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+        $stmt_check->bindParam(':idusu', $idinstructor, PDO::PARAM_INT);
+        $stmt_check->execute();
+        $resultado = $stmt_check->fetch(PDO::FETCH_ASSOC);
+        
+        if($resultado['existe'] == 0) {
+            // Insertar instructor
+            $sql_insert = "INSERT INTO hdtxusu (idnorad, idusu) VALUES (:idnorad, :idusu)";
+            $stmt_insert = $conexion->prepare($sql_insert);
+            $stmt_insert->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+            $stmt_insert->bindParam(':idusu', $idinstructor, PDO::PARAM_INT);
+            $stmt_insert->execute();
+            
+            // Recargar instructores asignados
+            $stmt = $conexion->prepare($sql);
+            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+            $stmt->execute();
+            $instructoresAsignados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (Exception $e) {
+        // Si hay error, se mantiene el array actual
+    }
+}
+
 ?>
