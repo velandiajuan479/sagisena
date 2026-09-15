@@ -463,19 +463,33 @@ function guardar() {
     
     // Enviar datos al servidor
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'index.php?ctl=horc&opera=save', true);
+    xhr.open('POST', 'index.php?ctl=chorc', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     
-    var params = 'opera=save_horario&idnorad=<?php echo isset($datOne[0]["idnorad"]) ? $datOne[0]["idnorad"] : ""; ?>&' + 
+    var idnorad = document.querySelector('input[name="idnorad"]').value;
+    var params = 'opera=save_horario&idnorad=' + idnorad + '&' + 
                  'datos=' + encodeURIComponent(JSON.stringify(datos));
     
     xhr.onload = function() {
         if(xhr.status === 200) {
-            alert('Horario guardado exitosamente');
-            location.reload();
+            try {
+                var response = JSON.parse(xhr.responseText);
+                if(response.success) {
+                    alert('Horario guardado exitosamente');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            } catch(e) {
+                alert('Error al guardar el horario: ' + xhr.responseText);
+            }
         } else {
-            alert('Error al guardar el horario');
+            alert('Error al guardar el horario. Estado: ' + xhr.status);
         }
+    };
+    
+    xhr.onerror = function() {
+        alert('Error de conexión al guardar el horario');
     };
     
     xhr.send(params);

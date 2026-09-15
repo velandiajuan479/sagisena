@@ -1,4 +1,17 @@
 <?php
+require_once(__DIR__ . "/conexion.php");
+
+/**
+ * Función para manejar errores de base de datos
+ * Solo se define si no existe ya
+ */
+if (!function_exists('ManejoError')) {
+    function ManejoError($e) {
+        error_log("Error en Mhorc: " . $e->getMessage());
+        // No imprimir nada para evitar romper respuestas JSON
+    }
+}
+
 class Mhorc {
 
     private $idhor;
