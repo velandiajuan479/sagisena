@@ -284,7 +284,7 @@ if(!isset($pg)) {
         <h4 class="card-title">
             Generar Horario Automático
         </h4>
-        <p class="text-muted mb-3">Genera automáticamente los horarios de Lunes a Viernes entre las fechas del curso</p>
+        <p class="text-muted mb-3">Seleccione los días de formación y genere automáticamente el horario entre las fechas del curso</p>
         <form id="formGenerarHorario" method="POST" action="home.php?pg=<?=$pg?>&idnorad=<?=$idnorad?>&opera=generarHorario">
             <div class="row">
                 <?php
@@ -311,6 +311,43 @@ if(!isset($pg)) {
                 </div>
                 <div class="form-group col-md-2 mb-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-success" onclick="return validarHorarioGen()">Generar Horario</button>
+                </div>
+            </div>
+            <!-- Selección de días -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <label class="fw-bold mb-2">Días de formación (seleccione los días):</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="1" id="dia_1">
+                            <label class="form-check-label" for="dia_1">Lunes</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="2" id="dia_2" checked>
+                            <label class="form-check-label" for="dia_2">Martes</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="3" id="dia_3" checked>
+                            <label class="form-check-label" for="dia_3">Miércoles</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="4" id="dia_4" checked>
+                            <label class="form-check-label" for="dia_4">Jueves</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="5" id="dia_5" checked>
+                            <label class="form-check-label" for="dia_5">Viernes</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="6" id="dia_6">
+                            <label class="form-check-label" for="dia_6">Sábado</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input dia-semana" type="checkbox" name="dias[]" value="7" id="dia_7">
+                            <label class="form-check-label" for="dia_7">Domingo</label>
+                        </div>
+                    </div>
+                    <small class="text-muted">Por defecto se seleccionan Martes a Viernes (según hoja de trabajo ejemplo)</small>
                 </div>
             </div>
         </form>
@@ -592,6 +629,13 @@ function validarHorarioGen() {
     
     if (horaFin <= horaInicio) {
         alert('La hora de finalización debe ser mayor a la hora de inicio');
+        return false;
+    }
+    
+    // Verificar que al menos un día esté seleccionado
+    const diasSeleccionados = document.querySelectorAll('.dia-semana:checked');
+    if (diasSeleccionados.length === 0) {
+        alert('Por favor seleccione al menos un día de formación');
         return false;
     }
     

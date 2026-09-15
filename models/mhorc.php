@@ -266,8 +266,9 @@ class Mhorc {
         return $res;
     }
 
-    // Generar horarios automáticos entre fecha inicial y final (Lunes a Viernes)
-    public function generarHorarioAutomatico($idnorad, $fechaInicio, $fechaFin, $horaInicio, $horaFin) {
+    // Generar horarios automáticos entre fecha inicial y final con días seleccionables
+    // $diasSeleccionados es un array con los números de día (1=Lunes, 2=Martes, ..., 7=Domingo)
+    public function generarHorarioAutomatico($idnorad, $fechaInicio, $fechaFin, $horaInicio, $horaFin, $diasSeleccionados = [1,2,3,4,5]) {
         try {
             $modelo = new conexion();
             $conexion = $modelo->get_conexion();
@@ -283,20 +284,37 @@ class Mhorc {
             $fechaFinal = new DateTime($fechaFin);
             
             while ($fechaActual <= $fechaFinal) {
-                // Obtener día de la semana (0 = Domingo, 6 = Sábado)
-                $diaSemana = $fechaActual->format('N'); // 1 = Lunes, 7 = Domingo
+                // Obtener día de la semana (1 = Lunes, 7 = Domingo)
+                $diaSemana = (int)$fechaActual->format('N');
                 
-                // Solo guardar de Lunes (1) a Viernes (5)
-                if ($diaSemana >= 1 && $diaSemana <= 5) {
-                    $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) 
-                            VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
-                    $stmt = $conexion->prepare($sql);
-                    $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+                // Solo guardar si el día está en los seleccionados
+                if (in_array($diaSemana, $diasSeleccionados)) {
+                    // Verificar si ya existe el registro para evitar duplicados
+                    $checkSql = "SELECT COUNT(*) as count FROM horario 
+                                 WHERE idnorad = :idnorad 
+                                 AND fecha_inicio = :fecha_inicio 
+                                 AND hinihor = :hinihor 
+                                 AND hfinhor = :hfinhor";
+                    $checkStmt = $conexion->prepare($checkSql);
+                    $checkStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
                     $fechaFormateada = $fechaActual->format('Y-m-d');
-                    $stmt->bindParam(':fecha_inicio', $fechaFormateada);
-                    $stmt->bindParam(':hinihor', $horaInicio);
-                    $stmt->bindParam(':hfinhor', $horaFin);
-                    $stmt->execute();
+                    $checkStmt->bindParam(':fecha_inicio', $fechaFormateada);
+                    $checkStmt->bindParam(':hinihor', $horaInicio);
+                    $checkStmt->bindParam(':hfinhor', $horaFin);
+                    $checkStmt->execute();
+                    $resultado = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    // Solo insertar si no existe
+                    if ($resultado['count'] == 0) {
+                        $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) 
+                                VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
+                        $stmt = $conexion->prepare($sql);
+                        $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+                        $stmt->bindParam(':fecha_inicio', $fechaFormateada);
+                        $stmt->bindParam(':hinihor', $horaInicio);
+                        $stmt->bindParam(':hfinhor', $horaFin);
+                        $stmt->execute();
+                    }
                 }
                 
                 // Avanzar un día
