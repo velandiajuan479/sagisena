@@ -17,7 +17,6 @@ $mccm = new Mccm();
 $datOne = [];
 $datOneEmp = [];
 $datOneHt = [];
-$datHorariosOcupados = [];
 $idemp_actual = null;
 
 

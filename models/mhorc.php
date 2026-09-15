@@ -1,34 +1,12 @@
 <?php
-require_once(__DIR__ . "/conexion.php");
-
-/**
- * Función para manejar errores de base de datos
- * Solo se define si no existe ya
- */
-if (!function_exists('ManejoError')) {
-    function ManejoError($e) {
-        error_log("Error en Mhorc: " . $e->getMessage());
-        // No imprimir nada para evitar romper respuestas JSON
-    }
-}
-
 class Mhorc {
 
-    private $idhor;
     private $iddia;
     private $hinihor;
     private $hfinhor;
-    private $idnorad;
-    private $fecha_especifica;
-    private $feclini;
-    private $feclin;
-    private $idusu;
 
     // Getters
     
-    public function getIdhor() {
-        return $this->idhor;
-    }
 
     public function getIddia() {
         return $this->iddia;
@@ -42,32 +20,8 @@ class Mhorc {
         return $this->hfinhor;
     }
 
-    public function getIdnorad() {
-        return $this->idnorad;
-    }
-
-    public function getFechaEspecifica() {
-        return $this->fecha_especifica;
-    }
-
-    public function getFeclini() {
-        return $this->feclini;
-    }
-
-    public function getFeclin() {
-        return $this->feclin;
-    }
-
-    public function getIdusu() {
-        return $this->idusu;
-    }
-
 
     // Setters
-
-    public function setIdhor($idhor) {
-        $this->idhor = $idhor;
-    }
 
     public function setIddia($iddia) {
         $this->iddia = $iddia;
@@ -79,26 +33,6 @@ class Mhorc {
 
     public function setHfinhor($hfinhor) {
         $this->hfinhor = $hfinhor;
-    }
-
-    public function setIdnorad($idnorad) {
-        $this->idnorad = $idnorad;
-    }
-
-    public function setFechaEspecifica($fecha_especifica) {
-        $this->fecha_especifica = $fecha_especifica;
-    }
-
-    public function setFeclini($feclini) {
-        $this->feclini = $feclini;
-    }
-
-    public function setFeclin($feclin) {
-        $this->feclin = $feclin;
-    }
-
-    public function setIdusu($idusu) {
-        $this->idusu = $idusu;
     }
 
 
@@ -200,36 +134,6 @@ class Mhorc {
         return $res;
     }
 
-    // Obtener horario por fecha específica
-    public function getByFecha() {
-        $sql = "SELECT * FROM horario WHERE fecha_especifica=:fecha_especifica AND idnorad=:idnorad";
-        $modelo = new conexion();
-        $conexion = $modelo->get_conexion();
-        $result = $conexion->prepare($sql);
-        $fecha_especifica = $this->getFechaEspecifica();
-        $idnorad = $this->getIdnorad();
-        $result->bindParam(':fecha_especifica', $fecha_especifica);
-        $result->bindParam(':idnorad', $idnorad);
-        $result->execute();
-        $res = $result->fetchAll(PDO::FETCH_ASSOC);
-        return $res;
-    }
-
-    // Guardar horario con fecha específica
-    public function saveConFecha() {
-        try {
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            $sql = "INSERT INTO horario (idnorad, fecha_especifica, hinihor, hfinhor, iddia, idusu) 
-                    VALUES (:idnorad, :fecha_especifica, :hinihor, :hfinhor, :iddia, :idusu)";
-            $result = $conexion->prepare($sql);
-
-            $idnorad = $this->getIdnorad();
-            $fecha_especifica = $this->getFechaEspecifica();
-            $hinihor = $this->getHinihor();
-            $hfinhor = $this->getHfinhor();
-            $iddia = 1044; // Default para lunes (ajustar según corresponda)
-            $idusu = $this->getIdusu() ? $this->getIdusu() : 1; // Usuario actual (instructor)
 
             $result->bindParam(':idnorad', $idnorad);
             $result->bindParam(':fecha_especifica', $fecha_especifica);
