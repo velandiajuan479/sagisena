@@ -176,5 +176,25 @@ if(!empty($datOneHt[0]['feclini']) && !empty($datOneHt[0]['feclin'])) {
     $datHorariosOcupados = $mhorc->getHorariosOcupados();
 }
 
+// Obtener instructores asignados a la hoja de trabajo
+$instructoresAsignados = [];
+if(!empty($idnorad)) {
+    try {
+        $sql = "SELECT u.idusu, u.nomusu
+                FROM hdtxusu h
+                INNER JOIN usuario u ON h.idusu = u.idusu
+                WHERE h.idnorad = :idnorad
+                ORDER BY u.nomusu";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
+        $stmt->execute();
+        $instructoresAsignados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        // Si hay error, se mantiene el array vacío
+        $instructoresAsignados = [];
+    }
+}
 
 ?>
