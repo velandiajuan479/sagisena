@@ -5,12 +5,8 @@ class Mhorc {
     private $hinihor;
     private $hfinhor;
 
-    private $idnorad;
-
     // Getters
-    public function getIdnorad() {
-        return $this->idnorad;
-    }
+    
 
     public function getIddia() {
         return $this->iddia;
@@ -24,10 +20,8 @@ class Mhorc {
         return $this->hfinhor;
     }
 
+
     // Setters
-    public function setIdnorad($idnorad) {
-        $this->idnorad = $idnorad;
-    }
 
     public function setIddia($iddia) {
         $this->iddia = $iddia;
@@ -41,146 +35,20 @@ class Mhorc {
         $this->hfinhor = $hfinhor;
     }
 
-    // Instructores de la hoja de trabajo
-    public function getInstructoresByHoja($idnorad) {
-        try {
-            $sql = "SELECT u.idusu, u.nomusu, u.ndocusu, u.emausu, u.telcan
-                    FROM hdtxusu h
-                    INNER JOIN usuario u ON h.idusu = u.idusu
-                    WHERE h.idnorad = :idnorad
-                    ORDER BY u.nomusu ASC";
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            $stmt = $conexion->prepare($sql);
-            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return [];
-        }
-    }
 
-    public function getAllInstructores() {
-        try {
-            $sql = "SELECT u.idusu, u.nomusu, u.ndocusu, u.emausu, u.telcan
-                    FROM usuario u
-                    INNER JOIN usupef up ON u.idusu = up.idusu
-                    WHERE up.idper = 7 AND (u.actusu = 1 OR u.actusu IS NULL)
-                    ORDER BY u.nomusu ASC";
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            $stmt = $conexion->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return [];
-        }
-    }
-
-    public function asignarInstructor($idnorad, $idusu) {
-        try {
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            
-            // Primero eliminar cualquier instructor existente para esta hoja de trabajo (solo uno permitido)
-            $deleteSql = "DELETE FROM hdtxusu WHERE idnorad = :idnorad";
-            $deleteStmt = $conexion->prepare($deleteSql);
-            $deleteStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $deleteStmt->execute();
-
-            // Insertar el nuevo instructor
-            $sql = "INSERT INTO hdtxusu (idnorad, idusu) VALUES (:idnorad, :idusu)";
-            $stmt = $conexion->prepare($sql);
-            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $stmt->bindParam(':idusu', $idusu, PDO::PARAM_INT);
-            return $stmt->execute();
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return false;
-        }
-    }
-
-    public function eliminarInstructor($idnorad, $idusu) {
-        try {
-            $sql = "DELETE FROM hdtxusu WHERE idnorad = :idnorad AND idusu = :idusu";
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            $stmt = $conexion->prepare($sql);
-            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $stmt->bindParam(':idusu', $idusu, PDO::PARAM_INT);
-            return $stmt->execute();
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return false;
-        }
-    }
-
-    public function updateComplementarios($idnorad, $idfic, $codslem, $convht) {
-        try {
-            $sql = "UPDATE hojatra SET idfic = :idfic, codslem = :codslem, convht = :convht WHERE idnorad = :idnorad";
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            $stmt = $conexion->prepare($sql);
-            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $stmt->bindParam(':idfic', $idfic);
-            $stmt->bindParam(':codslem', $codslem);
-            $stmt->bindParam(':convht', $convht);
-            return $stmt->execute();
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return false;
-        }
-    }
  
-    public function deleteHorarios($idnorad) {
-        try {
-            $sql = "DELETE FROM horario WHERE idnorad = :idnorad";
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            $stmt = $conexion->prepare($sql);
-            $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            return $stmt->execute();
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return false;
-        }
-    }
-
-    public function saveHorario() {
-        try {
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            // Usar fecha_inicio como campo para la fecha (iddia contiene la fecha)
-            // Permitir múltiples horarios por idnorad usando INSERT directo
-            $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
-            $result = $conexion->prepare($sql);
-
-            $result->bindParam(':idnorad', $this->idnorad, PDO::PARAM_INT);
-            $result->bindParam(':fecha_inicio', $this->iddia); // iddia contiene la fecha
-            $result->bindParam(':hinihor', $this->hinihor);
-            $result->bindParam(':hfinhor', $this->hfinhor);
-
-            return $result->execute();
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return false;
-        }
+    public function del() {
+        $sql = "DELETE FROM horario WHERE id=:iddia AND hinihor=:hinihor AND hfinhor=:hfinhor";
+        $modelo = new conexion();
+        $conexion = $modelo->get_conexion();
+        $result = $conexion->prepare($sql);
+        $iddia = $this->getIddia();
+        $result->bindParam(':iddia', $iddia);
+        $hinihor = $this->getHinihor();
+        $result->bindParam(':hinihor', $hinihor);
+        $hfinhor = $this->getHfinhor();
+        $result->bindParam(':hfinhor', $hfinhor);
+        $result->execute();
     }
 
     public function getAllVal($iddom) {
@@ -196,12 +64,12 @@ class Mhorc {
 
     // Sección de Horarios
     public function getHorario() {
-        $sql = "SELECT * FROM horario WHERE fecha_inicio=:fecha_inicio and hinihor=:hinihor and hfinhor=:hfinhor";
+        $sql = "SELECT * FROM horarios WHERE id=:iddia and hinihor=:hinihor and hfinhor=:hfinhor";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();
         $result = $conexion->prepare($sql);
-        $fecha_inicio = $this->getIddia();
-        $result->bindParam(':fecha_inicio', $fecha_inicio);
+        $iddia = $this->getIddia();
+        $result->bindParam(':iddia', $iddia);
         $hinihor = $this->getHinihor();
         $result->bindParam(':hinihor', $hinihor);
         $hfinhor = $this->getHfinhor();
@@ -243,7 +111,7 @@ class Mhorc {
     }
 
     public function getAll() {
-        $sql = "SELECT idhor, idnorad, fecha_inicio, hinihor, hfinhor FROM horario WHERE idnorad=:idnorad ORDER BY fecha_inicio, hinihor";
+        $sql = "SELECT * FROM horario WHERE idnorad=:idnorad";
         $modelo = new conexion();
         $conexion = $modelo->get_conexion();    
         $result = $conexion->prepare($sql);
@@ -266,67 +134,6 @@ class Mhorc {
         return $res;
     }
 
-    // Generar horarios automáticos entre fecha inicial y final con días seleccionables
-    // $diasSeleccionados es un array con los números de día (1=Lunes, 2=Martes, ..., 7=Domingo)
-    public function generarHorarioAutomatico($idnorad, $fechaInicio, $fechaFin, $horaInicio, $horaFin, $diasSeleccionados = [1,2,3,4,5]) {
-        try {
-            $modelo = new conexion();
-            $conexion = $modelo->get_conexion();
-            
-            // Eliminar horarios existentes para esta hoja de trabajo
-            $deleteSql = "DELETE FROM horario WHERE idnorad = :idnorad";
-            $deleteStmt = $conexion->prepare($deleteSql);
-            $deleteStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-            $deleteStmt->execute();
-            
-            // Iterar por cada día entre las fechas
-            $fechaActual = new DateTime($fechaInicio);
-            $fechaFinal = new DateTime($fechaFin);
-            
-            while ($fechaActual <= $fechaFinal) {
-                // Obtener día de la semana (1 = Lunes, 7 = Domingo)
-                $diaSemana = (int)$fechaActual->format('N');
-                
-                // Solo guardar si el día está en los seleccionados
-                if (in_array($diaSemana, $diasSeleccionados)) {
-                    // Verificar si ya existe el registro para evitar duplicados
-                    $checkSql = "SELECT COUNT(*) as count FROM horario 
-                                 WHERE idnorad = :idnorad 
-                                 AND fecha_inicio = :fecha_inicio 
-                                 AND hinihor = :hinihor 
-                                 AND hfinhor = :hfinhor";
-                    $checkStmt = $conexion->prepare($checkSql);
-                    $checkStmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-                    $fechaFormateada = $fechaActual->format('Y-m-d');
-                    $checkStmt->bindParam(':fecha_inicio', $fechaFormateada);
-                    $checkStmt->bindParam(':hinihor', $horaInicio);
-                    $checkStmt->bindParam(':hfinhor', $horaFin);
-                    $checkStmt->execute();
-                    $resultado = $checkStmt->fetch(PDO::FETCH_ASSOC);
-                    
-                    // Solo insertar si no existe
-                    if ($resultado['count'] == 0) {
-                        $sql = "INSERT INTO horario (idnorad, fecha_inicio, hinihor, hfinhor) 
-                                VALUES (:idnorad, :fecha_inicio, :hinihor, :hfinhor)";
-                        $stmt = $conexion->prepare($sql);
-                        $stmt->bindParam(':idnorad', $idnorad, PDO::PARAM_INT);
-                        $stmt->bindParam(':fecha_inicio', $fechaFormateada);
-                        $stmt->bindParam(':hinihor', $horaInicio);
-                        $stmt->bindParam(':hfinhor', $horaFin);
-                        $stmt->execute();
-                    }
-                }
-                
-                // Avanzar un día
-                $fechaActual->modify('+1 day');
-            }
-            
-            return true;
-        } catch (Exception $e) {
-            if(function_exists('ManejoError')) {
-                ManejoError($e);
-            }
-            return false;
-        }
-    }
+
+
 }
